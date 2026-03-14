@@ -1,0 +1,42 @@
+import { Schema, Types, model } from "mongoose";
+
+export type TaskStatus = "todo" | "in-progress" | "done";
+export type TaskPriority = "low" | "medium" | "high";
+
+export interface ITask {
+	_id: Types.ObjectId;
+	title: string;
+	description: string;
+	assignee: Types.ObjectId;
+	group?: Types.ObjectId;
+	dueDate: Date;
+	status: TaskStatus;
+	priority: TaskPriority;
+	createdAt: Date;
+	updatedAt: Date;
+}
+
+const taskSchema = new Schema<ITask>(
+	{
+		title: { type: String, required: true, trim: true },
+		description: { type: String, default: "", trim: true },
+		assignee: { type: Schema.Types.ObjectId, ref: "User", required: true },
+		group: { type: Schema.Types.ObjectId, ref: "ProjectGroup" },
+		dueDate: { type: Date, required: true },
+		status: {
+			type: String,
+			enum: ["todo", "in-progress", "done"],
+			default: "todo",
+			required: true
+		},
+		priority: {
+			type: String,
+			enum: ["low", "medium", "high"],
+			default: "medium",
+			required: true
+		}
+	},
+	{ timestamps: true }
+);
+
+export const TaskModel = model<ITask>("Task", taskSchema);

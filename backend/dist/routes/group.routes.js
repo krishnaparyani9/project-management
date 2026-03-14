@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const group_controller_1 = require("../controllers/group.controller");
+const auth_middleware_1 = require("../middleware/auth.middleware");
+const role_middleware_1 = require("../middleware/role.middleware");
+const router = (0, express_1.Router)();
+router.get("/my", auth_middleware_1.authenticate, group_controller_1.getMyGroup);
+router.get("/guide", auth_middleware_1.authenticate, (0, role_middleware_1.authorizeRoles)("guide"), group_controller_1.getGuideGroups);
+exports.default = router;
