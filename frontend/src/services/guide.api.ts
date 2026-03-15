@@ -1,5 +1,5 @@
 import api from "./api";
-import type { ProjectGroup } from "../types/group.types";
+export { fetchGuideGroups } from "./group.api";
 import type { ProgressUpdate } from "../types/progress.types";
 import type { Task } from "../types/task.types";
 
@@ -26,6 +26,5 @@ export interface GuideProgressUpdate extends ProgressUpdate {
   };
 }
 
-export const fetchGuideGroups = () => api.get<ApiResponse<ProjectGroup[]>>("/groups/guide");
 export const fetchGuideTasks = () => api.get<ApiResponse<GuideTask[]>>("/tasks/guide");
 export const fetchGuideProgressUpdates = () => api.get<ApiResponse<GuideProgressUpdate[]>>("/progress/guide");

@@ -3,9 +3,11 @@ import { Schema, Types, model } from "mongoose";
 export interface IProjectGroup {
 	_id: Types.ObjectId;
 	name: string;
-	guide: Types.ObjectId;
+	subject: string;
+	owner: Types.ObjectId;
+	guide?: Types.ObjectId;
 	members: Types.ObjectId[];
-	milestone: string;
+	pendingInvites: Types.ObjectId[];
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -13,9 +15,11 @@ export interface IProjectGroup {
 const projectGroupSchema = new Schema<IProjectGroup>(
 	{
 		name: { type: String, required: true, trim: true },
-		guide: { type: Schema.Types.ObjectId, ref: "User", required: true },
-		members: [{ type: Schema.Types.ObjectId, ref: "User", required: true }],
-		milestone: { type: String, default: "Initial planning" }
+		subject: { type: String, required: true, trim: true },
+		owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
+		guide: { type: Schema.Types.ObjectId, ref: "User", default: null },
+		members: [{ type: Schema.Types.ObjectId, ref: "User" }],
+		pendingInvites: [{ type: Schema.Types.ObjectId, ref: "User" }]
 	},
 	{ timestamps: true }
 );

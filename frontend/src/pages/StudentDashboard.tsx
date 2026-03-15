@@ -28,7 +28,7 @@ const StudentDashboard = () => {
         ]);
 
         setTasks(tasksResponse.data.data);
-        setGroup(groupResponse.data.data);
+        setGroup(groupResponse.data.data[0] ?? null);
         setProgressUpdates(progressResponse.data.data);
       } catch (err) {
         if (axios.isAxiosError(err)) {
@@ -72,96 +72,141 @@ const StudentDashboard = () => {
     [tasks]
   );
 
+  const taskNotifications = useMemo(
+    () => [...tasks]
+      .filter((task) => task.status !== "done")
+      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+      .slice(0, 5),
+    [tasks]
+  );
+
   const recentActivity = useMemo(
     () => progressUpdates.slice(0, 3).map((update) => `${update.summary} (${formatDate(update.createdAt)})`),
     [progressUpdates]
   );
 
   const quickStats = [
-    { label: "Active Tasks", value: String(activeTasksCount), tone: "text-cyan-300" },
-    { label: "Due This Week", value: String(dueThisWeekCount), tone: "text-amber-300" },
-    { label: "Progress Submitted", value: String(progressSubmittedCount), tone: "text-emerald-300" },
-    { label: "Team Members", value: String(group?.members.length ?? 0), tone: "text-fuchsia-300" }
+    { label: "Active Tasks", value: String(activeTasksCount), tone: "text-blue-600" },
+    { label: "Due This Week", value: String(dueThisWeekCount), tone: "text-amber-500" },
+    { label: "Progress Submitted", value: String(progressSubmittedCount), tone: "text-emerald-600" },
+    { label: "Team Members", value: String(group?.members.length ?? 0), tone: "text-violet-600" }
   ];
 
   if (isLoading) {
-    return <div className="text-sm text-slate-300">Loading student dashboard...</div>;
+    return <div className="text-sm text-slate-500">Loading student dashboard...</div>;
   }
 
   if (error) {
-    return <div className="text-sm text-rose-300">{error}</div>;
+    return <div className="text-sm text-rose-600">{error}</div>;
   }
 
   return (
     <div className="space-y-6 md:space-y-7">
-      <section className="rounded-2xl border border-slate-700/80 bg-gradient-to-r from-slate-900 via-slate-900 to-slate-800 p-5 md:p-6">
-        <p className="text-xs uppercase tracking-[0.2em] text-brand-300/80">Overview</p>
-        <h2 className="mt-2 text-2xl font-semibold text-slate-100 md:text-3xl">Student Dashboard</h2>
-        <p className="mt-3 max-w-3xl text-sm text-slate-300 md:text-base">
+      <section className="rounded-2xl border border-gray-200 bg-white p-5 md:p-6">
+        <p className="text-xs uppercase tracking-[0.2em] text-blue-500 font-medium">Overview</p>
+        <h2 className="mt-2 text-2xl font-bold text-slate-800 md:text-3xl">Student Dashboard</h2>
+        <p className="mt-3 max-w-3xl text-sm text-slate-500 md:text-base">
           Track assigned tasks, submit weekly progress updates, and keep your project documentation aligned with guide expectations.
         </p>
-        {group ? (
-          <p className="mt-3 text-xs text-brand-200 md:text-sm">
-            Group: {group.name} | Milestone: {group.milestone} | Guide: {group.guide.name}
-          </p>
-        ) : (
-          <p className="mt-2 text-xs text-slate-400">No group assigned yet.</p>
-        )}
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
+        <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-blue-500">Group Details</p>
+          {group ? (
+            <div className="mt-3 space-y-3">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-slate-400">Group Name</p>
+                <p className="mt-1 text-lg font-semibold text-slate-800">{group.name}</p>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                  <p className="text-xs uppercase tracking-wider text-slate-400">Members</p>
+                  <p className="mt-1 text-sm font-medium text-slate-700">{group.members.length} / 4</p>
+                </div>
+                <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                  <p className="text-xs uppercase tracking-wider text-slate-400">Guide</p>
+                  <p className="mt-1 text-sm font-medium text-slate-700">{group.guide?.name ?? "Not assigned"}</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-slate-500">No group details available yet.</p>
+          )}
+        </article>
+
+        <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-semibold text-slate-800">Notifications</h3>
+            <span className="rounded-full bg-blue-50 px-2 py-1 text-xs text-blue-600">Assigned by Guide</span>
+          </div>
+          <ul className="mt-4 space-y-2">
+            {taskNotifications.map((task) => (
+              <li key={task.id} className="rounded-lg border border-blue-100 bg-blue-50/50 p-3">
+                <p className="text-sm font-medium text-slate-800">New task assigned: {task.title}</p>
+                <p className="mt-1 text-xs text-slate-500">Due {formatDate(task.dueDate)} · Priority {task.priority}</p>
+              </li>
+            ))}
+            {taskNotifications.length === 0 ? (
+              <li className="text-xs text-slate-500">No new task notifications.</li>
+            ) : null}
+          </ul>
+        </article>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {quickStats.map((item) => (
-          <article key={item.label} className="rounded-xl border border-slate-700 bg-slate-800/70 p-4 transition hover:-translate-y-0.5 hover:border-slate-600">
-            <p className="text-xs uppercase tracking-wider text-slate-400">{item.label}</p>
+          <article key={item.label} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md">
+            <p className="text-xs uppercase tracking-wider text-slate-500">{item.label}</p>
             <p className={`mt-2 text-3xl font-bold ${item.tone}`}>{item.value}</p>
           </article>
         ))}
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
-        <article className="rounded-xl border border-slate-700 bg-slate-800/60 p-5">
+        <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-base font-semibold text-slate-100">Upcoming Deadlines</h3>
-            <span className="rounded-full bg-brand-500/15 px-2 py-1 text-xs text-brand-200">Sprint 3</span>
+            <h3 className="text-base font-semibold text-slate-800">Upcoming Deadlines</h3>
+            <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-slate-500">Sprint 3</span>
           </div>
 
           <ul className="space-y-3">
             {upcomingTasks.map((task) => (
-              <li key={task.title} className="rounded-lg border border-slate-700 bg-slate-900/70 p-3 transition hover:border-slate-600">
-                <p className="text-sm font-medium text-slate-100">{task.title}</p>
-                <p className="mt-1 text-xs text-slate-400">Due: {formatDate(task.dueDate)}</p>
-                <p className="mt-2 inline-block rounded bg-slate-800 px-2 py-1 text-xs text-slate-300">
+              <li key={task.title} className="rounded-lg border border-gray-100 bg-gray-50 p-3 transition hover:border-gray-300">
+                <p className="text-sm font-medium text-slate-800">{task.title}</p>
+                <p className="mt-1 text-xs text-slate-500">Due: {formatDate(task.dueDate)}</p>
+                <p className="mt-2 inline-block rounded bg-gray-100 px-2 py-1 text-xs text-slate-500">
                   Status: {task.status} | Priority: {task.priority}
                 </p>
               </li>
             ))}
-            {upcomingTasks.length === 0 ? <li className="text-xs text-slate-400">No tasks assigned yet.</li> : null}
+            {upcomingTasks.length === 0 ? <li className="text-xs text-slate-500">No tasks assigned yet.</li> : null}
           </ul>
         </article>
 
-        <article className="rounded-xl border border-slate-700 bg-slate-800/60 p-5">
-          <h3 className="text-base font-semibold text-slate-100">Recent Activity</h3>
+        <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <h3 className="text-base font-semibold text-slate-800">Recent Activity</h3>
           <ul className="mt-4 space-y-3">
             {recentActivity.map((activity) => (
-              <li key={activity} className="rounded-lg border border-slate-700 bg-slate-900/70 p-3 text-sm text-slate-300 transition hover:border-slate-600">
+              <li key={activity} className="rounded-lg border border-gray-100 bg-gray-50 p-3 text-sm text-slate-600 transition hover:border-gray-300">
                 {activity}
               </li>
             ))}
-            {recentActivity.length === 0 ? <li className="text-xs text-slate-400">No recent progress updates.</li> : null}
+            {recentActivity.length === 0 ? <li className="text-xs text-slate-500">No recent progress updates.</li> : null}
           </ul>
         </article>
       </section>
 
-      <section className="rounded-xl border border-slate-700 bg-slate-800/60 p-5">
-        <h3 className="text-base font-semibold text-slate-100">Progress Snapshot</h3>
+      <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <h3 className="text-base font-semibold text-slate-800">Progress Snapshot</h3>
         <div className="mt-3 space-y-2">
-          <div className="flex items-center justify-between text-sm text-slate-300">
+          <div className="flex items-center justify-between text-sm text-slate-600">
             <span>Overall completion</span>
             <span>{averageCompletion}%</span>
           </div>
-          <div className="h-2 rounded-full bg-slate-700">
+          <div className="h-2 rounded-full bg-gray-200">
             <div
-              className="h-2 rounded-full bg-gradient-to-r from-brand-500 to-cyan-400"
+              className="h-2 rounded-full bg-blue-500"
               style={{ width: `${averageCompletion}%` }}
             />
           </div>

@@ -13,6 +13,7 @@ import { useAuth } from "../hooks/useAuth";
 const DashboardHome = () => {
   const { user } = useAuth();
   if (user?.role === "guide") return <GuideDashboard />;
+  if (user?.role === "admin") return <Navigate to="/groups" replace />;
   return <StudentDashboard />;
 };
 

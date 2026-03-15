@@ -70,12 +70,13 @@ const RegisterPage = () => {
           <span className="mb-1 block text-sm font-medium text-slate-700">Role</span>
           <select
             id="role"
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm outline-none ring-brand-300 transition focus:ring"
+            className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none ring-blue-300 transition focus:ring"
             value={role}
             onChange={(e) => setRole(e.target.value as UserRole)}
           >
             <option value="student">Student</option>
             <option value="guide">Guide</option>
+            <option value="admin">Admin</option>
           </select>
         </label>
 
