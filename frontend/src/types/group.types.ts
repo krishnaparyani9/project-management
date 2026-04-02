@@ -3,6 +3,9 @@ export interface GroupMember {
   name: string;
   email: string;
   role: string;
+  branch?: string;
+  division?: string;
+  rollNo?: string;
 }
 
 export interface GroupOwner {

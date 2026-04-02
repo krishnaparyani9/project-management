@@ -94,9 +94,17 @@ const GuideDashboard = () => {
           <h3 className="text-base font-semibold text-slate-800">My Groups</h3>
           <ul className="mt-4 space-y-3">
             {groups.map((group) => (
-              <li key={group.id} className="rounded-lg border border-gray-100 bg-gray-50 p-3">
-                <p className="text-sm font-medium text-slate-800">{group.name}</p>
-                <p className="mt-1 text-xs text-slate-500">Subject: {group.subject}</p>
+                  <li key={m.id} className="rounded-lg border border-gray-100 bg-white px-2 py-2 text-sm text-slate-700">
+                    <div className="flex items-center gap-2">
+                      <Avatar name={m.name} />
+                      <div>
+                        <p className="text-sm font-medium text-slate-800">{m.name}</p>
+                        <p className="text-xs text-slate-500">{m.email}</p>
+                        <p className="text-xs text-slate-500">
+                          Branch: {m.branch ?? "-"} · Division: {m.division ?? "-"} · Roll No: {m.rollNo ?? "-"}
+                        </p>
+                      </div>
+                    </div>
                 <p className="mt-2 text-xs text-slate-600">Members: {group.members.length}</p>
               </li>
             ))}

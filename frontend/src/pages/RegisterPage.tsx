@@ -15,6 +15,9 @@ const RegisterPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>("student");
+  const [branch, setBranch] = useState("");
+  const [division, setDivision] = useState("");
+  const [rollNo, setRollNo] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -26,9 +29,32 @@ const RegisterPage = () => {
       return;
     }
 
+    if (role === "student") {
+      if (!branch.trim()) {
+        setError("Branch is required for student signup.");
+        return;
+      }
+      if (!division.trim()) {
+        setError("Division is required for student signup.");
+        return;
+      }
+      if (!rollNo.trim()) {
+        setError("Roll number is required for student signup.");
+        return;
+      }
+    }
+
     setIsLoading(true);
     try {
-      const response = await registerRequest({ name, email, password, role });
+      const response = await registerRequest({
+        name,
+        email,
+        password,
+        role,
+        branch: role === "student" ? branch.trim() : undefined,
+        division: role === "student" ? division.trim() : undefined,
+        rollNo: role === "student" ? rollNo.trim() : undefined
+      });
       const { user } = response.data.data;
       signIn(user);
       navigate("/dashboard", { replace: true });
@@ -54,18 +80,6 @@ const RegisterPage = () => {
       <p className="mb-6 text-sm text-slate-500">Register as student or guide.</p>
 
       <form className="space-y-4" onSubmit={onSubmit}>
-        <Input id="name" label="Full Name" value={name} onChange={(e) => setName(e.target.value)} required />
-        <Input id="email" label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <Input
-          id="password"
-          label="Password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          minLength={6}
-          required
-        />
-
         <label htmlFor="role" className="block">
           <span className="mb-1 block text-sm font-medium text-slate-700">Role</span>
           <select
@@ -79,6 +93,52 @@ const RegisterPage = () => {
             <option value="admin">Admin</option>
           </select>
         </label>
+        <Input id="name" label="Full Name" value={name} onChange={(e) => setName(e.target.value)} required />
+        <Input id="email" label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <Input
+          id="password"
+          label="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          minLength={6}
+          required
+        />
+
+        {role === "student" ? (
+          <>
+            <label htmlFor="branch" className="block">
+              <span className="mb-1 block text-sm font-medium text-slate-700">Branch</span>
+              <select
+                id="branch"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none ring-blue-300 transition focus:ring"
+                value={branch}
+                onChange={(e) => setBranch(e.target.value)}
+                required
+              >
+                <option value="">Select Branch</option>
+                <option value="Computer Engineering">Computer Engineering</option>
+              </select>
+            </label>
+            <label htmlFor="division" className="block">
+              <span className="mb-1 block text-sm font-medium text-slate-700">Division</span>
+              <select
+                id="division"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none ring-blue-300 transition focus:ring"
+                value={division}
+                onChange={(e) => setDivision(e.target.value)}
+                required
+              >
+                <option value="">Select Division</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+              </select>
+            </label>
+            <Input id="rollNo" label="Roll Number" value={rollNo} onChange={(e) => setRollNo(e.target.value)} required />
+          </>
+        ) : null}
 
         {error ? <p className="text-sm text-rose-600">{error}</p> : null}
 

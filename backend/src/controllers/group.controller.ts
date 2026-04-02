@@ -1,3 +1,17 @@
+// ─── Public: view all group names, branch, division ─────────────────────────────
+import type { Request } from "express";
+export const getAllGroupNames = asyncHandler(async (_req: Request, res: Response) => {
+	const groups = await ProjectGroupModel.find({}, { name: 1, _id: 0 })
+		.populate({ path: "owner", select: "branch division" })
+		.lean();
+	// Each group: { name, owner: { branch, division } }
+	const result = groups.map((g: any) => ({
+		name: g.name,
+		branch: g.owner?.branch || null,
+		division: g.owner?.division || null
+	}));
+	res.status(200).json(new ApiResponse(true, "Group names fetched", result));
+});
 import type { Response } from "express";
 import { Types } from "mongoose";
 import { ProjectGroupModel } from "../models/projectGroup.model";
@@ -9,12 +23,27 @@ import { asyncHandler } from "../utils/asyncHandler";
 const POPULATE = [
 	{ path: "owner", select: "name email" },
 	{ path: "guide", select: "name email" },
-	{ path: "members", select: "name email role" },
+	{ path: "members", select: "name email role branch division rollNo" },
 	{ path: "pendingInvites", select: "name email" }
 ];
 
-type PopUser = { _id: unknown; name: string; email: string; role?: string };
-const fu = (u: PopUser) => ({ id: String(u._id), name: u.name, email: u.email });
+type PopUser = {
+	_id: unknown;
+	name: string;
+	email: string;
+	role?: string;
+	branch?: string;
+	division?: string;
+	rollNo?: string;
+};
+const fu = (u: PopUser) => ({
+	id: String(u._id),
+	name: u.name,
+	email: u.email,
+	branch: u.branch,
+	division: u.division,
+	rollNo: u.rollNo
+});
 
 const formatGroup = (g: Record<string, unknown>) => ({
 	id: String(g._id),

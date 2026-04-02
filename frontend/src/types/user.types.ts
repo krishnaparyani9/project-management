@@ -5,6 +5,9 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  branch?: string;
+  division?: string;
+  rollNo?: string;
 }
 
 export interface AuthState {

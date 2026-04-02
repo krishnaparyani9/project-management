@@ -1,3 +1,5 @@
+export const fetchAllGroupNames = () =>
+	api.get<AR<{ name: string; branch: string; division: string }[]>>("/groups/all-public");
 import api from "./api";
 import type { ProjectGroup, PendingInvite } from "../types/group.types";
 

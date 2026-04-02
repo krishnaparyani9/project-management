@@ -4,7 +4,8 @@ import {
 	inviteStudent, respondToInvite, cancelInvite,
 	removeMember, leaveGroup, updateGroup, deleteGroup,
 	getGuideGroups,
-	assignGuide, getAllGroups, getAllGuides
+	assignGuide, getAllGroups, getAllGuides,
+	getAllGroupNames
 } from "../controllers/group.controller";
 import { authenticate } from "../middleware/auth.middleware";
 import { authorizeRoles } from "../middleware/role.middleware";
@@ -16,6 +17,7 @@ router.get("/my",          authenticate, authorizeRoles("student"), getMyGroup);
 router.get("/invites",     authenticate, authorizeRoles("student"), getMyInvites);
 router.get("/guide",       authenticate, authorizeRoles("guide"),   getGuideGroups);
 router.get("/all",         authenticate, authorizeRoles("admin"),   getAllGroups);
+router.get("/all-public",  authenticate, authorizeRoles("student", "guide", "admin"), getAllGroupNames);
 router.get("/guides-list", authenticate, authorizeRoles("admin"),   getAllGuides);
 
 // Student: create group

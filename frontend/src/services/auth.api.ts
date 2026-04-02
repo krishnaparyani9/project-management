@@ -11,6 +11,9 @@ interface RegisterPayload {
   email: string;
   password: string;
   role: UserRole;
+  branch?: string;
+  division?: string;
+  rollNo?: string;
 }
 
 export interface AuthResponse {

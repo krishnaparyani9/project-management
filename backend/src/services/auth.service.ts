@@ -9,7 +9,22 @@ const signupSchema = z.object({
 	name: z.string().min(2).max(80),
 	email: z.string().email(),
 	password: z.string().min(6).max(128),
-	role: z.enum(["student", "guide", "admin"])
+	role: z.enum(["student", "guide", "admin"]),
+	branch: z.string().trim().optional(),
+	division: z.string().trim().optional(),
+	rollNo: z.string().trim().optional()
+}).superRefine((data, ctx) => {
+	if (data.role !== "student") return;
+
+	if (!data.branch?.trim()) {
+		ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Branch is required for students", path: ["branch"] });
+	}
+	if (!data.division?.trim()) {
+		ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Division is required for students", path: ["division"] });
+	}
+	if (!data.rollNo?.trim()) {
+		ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Roll number is required for students", path: ["rollNo"] });
+	}
 });
 
 const loginSchema = z.object({
@@ -22,6 +37,9 @@ interface SignupInput {
 	email: string;
 	password: string;
 	role: UserRole;
+	branch?: string;
+	division?: string;
+	rollNo?: string;
 }
 
 interface LoginInput {
@@ -36,6 +54,9 @@ interface AuthResult {
 		name: string;
 		email: string;
 		role: UserRole;
+		branch?: string;
+		division?: string;
+		rollNo?: string;
 	};
 }
 
@@ -57,7 +78,15 @@ const createToken = (payload: JwtPayload): string => {
 	return jwt.sign(payload, secret, options);
 };
 
-const toAuthResult = (user: { _id: string; name: string; email: string; role: UserRole }): AuthResult => {
+const toAuthResult = (user: {
+	_id: string;
+	name: string;
+	email: string;
+	role: UserRole;
+	branch?: string;
+	division?: string;
+	rollNo?: string;
+}): AuthResult => {
 	const token = createToken({ userId: String(user._id), role: user.role });
 
 	return {
@@ -66,7 +95,10 @@ const toAuthResult = (user: { _id: string; name: string; email: string; role: Us
 			id: String(user._id),
 			name: user.name,
 			email: user.email,
-			role: user.role
+			role: user.role,
+			branch: user.branch,
+			division: user.division,
+			rollNo: user.rollNo
 		}
 	};
 };
@@ -84,7 +116,10 @@ export const registerUser = async (input: SignupInput): Promise<AuthResult> => {
 		name: payload.name,
 		email: payload.email.toLowerCase(),
 		password: hashedPassword,
-		role: payload.role
+		role: payload.role,
+		branch: payload.role === "student" ? payload.branch?.trim() : undefined,
+		division: payload.role === "student" ? payload.division?.trim() : undefined,
+		rollNo: payload.role === "student" ? payload.rollNo?.trim() : undefined
 	});
 
 	return toAuthResult(user);
@@ -117,7 +152,10 @@ export const getUserById = async (userId: string) => {
 		id: String(user._id),
 		name: user.name,
 		email: user.email,
-		role: user.role
+		role: user.role,
+		branch: user.branch,
+		division: user.division,
+		rollNo: user.rollNo
 	};
 };
 

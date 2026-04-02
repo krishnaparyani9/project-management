@@ -7,7 +7,8 @@ import Input from "../components/Input";
 import {
   fetchMyGroup, fetchMyInvites, createGroup, updateGroup, deleteGroup,
   leaveGroup, inviteStudent, respondToInvite, cancelInvite, removeMember,
-  fetchGuideGroups, fetchAllGroups, fetchAllGuides, assignGuide
+  fetchGuideGroups, fetchAllGroups, fetchAllGuides, assignGuide,
+  fetchAllGroupNames
 } from "../services/group.api";
 import type { ProjectGroup, PendingInvite } from "../types/group.types";
 
@@ -450,14 +451,29 @@ function StudentGroupPage() {
   const [newSubject, setNewSubject] = useState("");
   const [createErr, setCreateErr] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
+  const [allGroupNames, setAllGroupNames] = useState<{ name: string; branch: string; division: string }[]>([]);
+  // Compute available group numbers for dropdown
+  const branch = user?.branch || "";
+  const division = user?.division || "";
+  const groupPrefix = `${branch}-${division}-`;
+  const takenNumbers = allGroupNames
+    .filter(g => g.branch === branch && g.division === division && g.name.startsWith(groupPrefix))
+    .map(g => parseInt(g.name.replace(groupPrefix, ""), 10))
+    .filter(n => !isNaN(n));
+  const availableNumbers = Array.from({ length: 21 }, (_, i) => i).filter(n => !takenNumbers.includes(n));
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [groupRes, invitesRes] = await Promise.all([fetchMyGroup(), fetchMyInvites()]);
+        const [groupRes, invitesRes, allGroupNamesRes] = await Promise.all([
+          fetchMyGroup(),
+          fetchMyInvites(),
+          fetchAllGroupNames()
+        ]);
         const myGroups = normalizeGroups(groupRes.data.data as ProjectGroup | ProjectGroup[] | null);
         setGroups(myGroups);
         setInvites(invitesRes.data.data);
+        setAllGroupNames(allGroupNamesRes.data.data);
       } catch (err) {
         setError(errMsg(err));
       } finally {
@@ -515,8 +531,48 @@ function StudentGroupPage() {
         />
         <Modal open={showCreate} title="Create Group" onClose={() => setShowCreate(false)}>
           <form className="space-y-4" onSubmit={(e) => void handleCreateAnother(e)}>
-            <Input id="cg-name-empty" label="Group Name" value={newName} onChange={(e) => setNewName(e.target.value)} required />
-            <Input id="cg-subject-empty" label="Subject" value={newSubject} onChange={(e) => setNewSubject(e.target.value)} required />
+            {/* Show branch and division info above the group name dropdown */}
+            <div className="mb-2">
+              <span className="block text-xs text-slate-500">Branch:</span>
+              <span className="block text-sm font-semibold text-slate-700">{branch || <span className="text-rose-600">Not set</span>}</span>
+              <span className="block text-xs text-slate-500 mt-1">Division:</span>
+              <span className="block text-sm font-semibold text-slate-700">{division || <span className="text-rose-600">Not set</span>}</span>
+            </div>
+            <label htmlFor="cg-name-empty" className="block">
+              <span className="mb-1 block text-sm font-medium text-slate-700">Group Name</span>
+              <select
+                id="cg-name-empty"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none ring-blue-300 transition focus:ring"
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+                required
+                disabled={!branch || !division}
+              >
+                <option value="">{!branch || !division ? "Set branch and division in your profile" : "Select Group"}</option>
+                {branch && division && availableNumbers.map(n => (
+                  <option key={n} value={`${branch}-${division}-${n}`}>{`${branch}-${division}-${n}`}</option>
+                ))}
+              </select>
+            </label>
+            {/* Fallback/error if branch or division is missing */}
+            {(!branch || !division) && (
+              <p className="text-sm text-rose-600 mt-2">Branch and division must be set in your profile to create a group.</p>
+            )}
+            <label htmlFor="cg-subject-empty" className="block">
+              <span className="mb-1 block text-sm font-medium text-slate-700">Subject</span>
+              <select
+                id="cg-subject-empty"
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none ring-blue-300 transition focus:ring"
+                value={newSubject}
+                onChange={e => setNewSubject(e.target.value)}
+                required
+              >
+                <option value="">Select Subject</option>
+                <option value="EDI">EDI</option>
+                <option value="S1">S1</option>
+                <option value="S2">S2</option>
+              </select>
+            </label>
             {createErr && <p className="text-sm text-rose-600">{createErr}</p>}
             <div className="flex justify-end gap-2">
               <Button variant="secondary" className="border-gray-200 bg-white text-slate-600 hover:bg-gray-50" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
@@ -553,8 +609,48 @@ function StudentGroupPage() {
 
       <Modal open={showCreate} title="Create Group" onClose={() => setShowCreate(false)}>
         <form className="space-y-4" onSubmit={(e) => void handleCreateAnother(e)}>
-          <Input id="cg-name" label="Group Name" value={newName} onChange={(e) => setNewName(e.target.value)} required />
-          <Input id="cg-subject" label="Subject" value={newSubject} onChange={(e) => setNewSubject(e.target.value)} required />
+          {/* Show branch and division info above the group name dropdown */}
+          <div className="mb-2">
+            <span className="block text-xs text-slate-500">Branch:</span>
+            <span className="block text-sm font-semibold text-slate-700">{branch || <span className="text-rose-600">Not set</span>}</span>
+            <span className="block text-xs text-slate-500 mt-1">Division:</span>
+            <span className="block text-sm font-semibold text-slate-700">{division || <span className="text-rose-600">Not set</span>}</span>
+          </div>
+          <label htmlFor="cg-name" className="block">
+            <span className="mb-1 block text-sm font-medium text-slate-700">Group Name</span>
+            <select
+              id="cg-name"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none ring-blue-300 transition focus:ring"
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              required
+              disabled={!branch || !division}
+            >
+              <option value="">{!branch || !division ? "Set branch and division in your profile" : "Select Group"}</option>
+              {branch && division && availableNumbers.map(n => (
+                <option key={n} value={`${branch}-${division}-${n}`}>{`${branch}-${division}-${n}`}</option>
+              ))}
+            </select>
+          </label>
+          {/* Fallback/error if branch or division is missing */}
+          {(!branch || !division) && (
+            <p className="text-sm text-rose-600 mt-2">Branch and division must be set in your profile to create a group.</p>
+          )}
+          <label htmlFor="cg-subject" className="block">
+            <span className="mb-1 block text-sm font-medium text-slate-700">Subject</span>
+            <select
+              id="cg-subject"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none ring-blue-300 transition focus:ring"
+              value={newSubject}
+              onChange={e => setNewSubject(e.target.value)}
+              required
+            >
+              <option value="">Select Subject</option>
+              <option value="EDI">EDI</option>
+              <option value="S1">S1</option>
+              <option value="S2">S2</option>
+            </select>
+          </label>
           {createErr && <p className="text-sm text-rose-600">{createErr}</p>}
           <div className="flex justify-end gap-2">
             <Button variant="secondary" className="border-gray-200 bg-white text-slate-600 hover:bg-gray-50" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
@@ -601,9 +697,17 @@ function GuideGroupPage() {
               <p className="mt-3 text-xs text-slate-500">Owner: {g.owner.name}</p>
               <ul className="mt-3 space-y-1">
                 {g.members.map((m) => (
-                  <li key={m.id} className="flex items-center gap-2 text-sm text-slate-700">
-                    <Avatar name={m.name} />
-                    <span>{m.name}</span>
+                  <li key={m.id} className="rounded-lg border border-gray-100 bg-gray-50 p-2 text-sm text-slate-700">
+                    <div className="flex items-center gap-2">
+                      <Avatar name={m.name} />
+                      <div>
+                        <p className="text-sm font-medium text-slate-800">{m.name}</p>
+                        <p className="text-xs text-slate-500">{m.email}</p>
+                        <p className="text-xs text-slate-500">
+                          Branch: {m.branch ?? "-"} · Division: {m.division ?? "-"} · Roll No: {m.rollNo ?? "-"}
+                        </p>
+                      </div>
+                    </div>
                   </li>
                 ))}
               </ul>

@@ -7,37 +7,55 @@ export interface IUser {
 	email: string;
 	password: string;
 	role: UserRole;
+	branch?: string;
+	division?: string;
+	rollNo?: string;
 	createdAt: Date;
 	updatedAt: Date;
 }
 
 const userSchema = new Schema<IUser>(
-	{
-		name: {
-			type: String,
-			required: true,
-			trim: true
-		},
-		email: {
-			type: String,
-			required: true,
-			unique: true,
-			lowercase: true,
-			trim: true
-		},
-		password: {
-			type: String,
-			required: true,
-			minlength: 6
-		},
-		role: {
-			type: String,
-			enum: ["student", "guide", "admin"],
-			default: "student",
-			required: true
-		}
-	},
-	{ timestamps: true }
+       {
+	       role: {
+		       type: String,
+		       enum: ["student", "guide", "admin"],
+		       default: "student",
+		       required: true
+	       },
+	       name: {
+		       type: String,
+		       required: true,
+		       trim: true
+	       },
+	       email: {
+		       type: String,
+		       required: true,
+		       unique: true,
+		       lowercase: true,
+		       trim: true
+	       },
+	       password: {
+		       type: String,
+		       required: true,
+		       minlength: 6
+	       },
+	       branch: {
+		       type: String,
+		       trim: true,
+		       default: undefined
+	       },
+	       division: {
+		       type: String,
+		       trim: true,
+		       default: undefined
+	       },
+	       rollNo: {
+		       type: String,
+		       trim: true,
+		       default: undefined
+	       }
+       },
+       { timestamps: true }
 );
 
 export const UserModel = model<IUser>("User", userSchema);
