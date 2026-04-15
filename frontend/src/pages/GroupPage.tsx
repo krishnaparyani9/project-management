@@ -86,7 +86,7 @@ function NoGroupView({ invites, onAccept, onDecline, onOpenCreate }: {
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-blue-500">Groups</p>
-        <h2 className="mt-1 text-3xl font-bold tracking-tight text-slate-800">Project Groups</h2>
+        <h2 className="mt-1 text-3xl font-bold tracking-tight text-[var(--text-strong)]">Project Groups</h2>
       </div>
 
       {/* Pending invites */}
@@ -128,9 +128,9 @@ function NoGroupView({ invites, onAccept, onDecline, onOpenCreate }: {
       )}
 
       {/* Empty state */}
-      <section className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h3 className="text-base font-semibold text-slate-800">No Groups Yet</h3>
-        <p className="mt-1 text-sm text-slate-500">
+      <section className="rounded-xl border border-blue-500/30 bg-gradient-to-br from-[var(--bg-2)]/90 to-[var(--bg-1)]/80 p-8 shadow-lg">
+        <h3 className="text-base font-semibold text-[var(--text-strong)]">No Groups Yet</h3>
+        <p className="mt-1 text-sm text-[var(--text-body)]">
           Create your first group and invite up to 3 teammates. Each group can have up to 4 members.
         </p>
         <div className="mt-4">
@@ -261,12 +261,12 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
             setShowDetails(true);
           }
         }}
-        className="cursor-pointer rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md"
+        className="cursor-pointer rounded-2xl border border-blue-400/30 bg-[#23293a] p-6 shadow-xl transition hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-2xl"
       >
-        <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-blue-500">Group</p>
-        <h3 className="mt-1 text-2xl font-bold tracking-tight text-slate-800">{group.name}</h3>
-        <p className="mt-1 text-sm text-slate-500">Subject: {group.subject}</p>
-        <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+        <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-blue-400">Group</p>
+        <h3 className="mt-1 text-2xl font-bold tracking-tight text-[var(--text-strong)]">{group.name}</h3>
+        <p className="mt-1 text-sm text-[var(--text-body)]">Subject: {group.subject}</p>
+        <div className="mt-3 flex items-center justify-between text-xs text-blue-400">
           <span>{group.members.length}/4 Members</span>
           <span>{group.guide ? "Guide Assigned" : "Guide Not Assigned"}</span>
         </div>
@@ -278,9 +278,9 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
 
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-blue-500">Group</p>
-              <h3 className="mt-1 text-2xl font-bold tracking-tight text-slate-800">{group.name}</h3>
-              <p className="mt-1 text-sm text-slate-500">Subject: {group.subject}</p>
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-blue-400">Group</p>
+              <h3 className="mt-1 text-2xl font-bold tracking-tight text-[var(--text-strong)]">{group.name}</h3>
+              <p className="mt-1 text-sm text-[var(--text-body)]">Subject: {group.subject}</p>
             </div>
             {isOwner && (
               <button
@@ -294,36 +294,36 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
 
           <GuideStatusCard guide={group.guide} />
 
-          <section className="rounded-2xl border border-gray-200 bg-white/80 p-4">
+          <section className="rounded-lg border border-blue-400/30 bg-[#2a3144] p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-slate-700">
+              <h3 className="text-sm font-semibold text-[var(--text-strong)]">
                 Team Members
-                <span className="ml-2 text-xs font-normal text-slate-400">{group.members.length}/4</span>
+                <span className="ml-2 text-xs font-normal text-blue-300">{group.members.length}/4</span>
               </h3>
               {spotsLeft === 0
-                ? <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-slate-500">Full</span>
-                : <span className="text-xs text-slate-400">{spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left</span>
+                ? <span className="rounded-full bg-blue-400/10 px-2 py-0.5 text-xs text-blue-300">Full</span>
+                : <span className="text-xs text-blue-300">{spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left</span>
               }
             </div>
             <ul className="space-y-2">
               {group.members.map((member) => (
-                <li key={member.id} className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-3 py-2.5">
+                <li key={member.id} className="flex items-center justify-between rounded-lg border border-blue-400/10 bg-[#23293a] px-3 py-2.5">
                   <div className="flex items-center gap-3">
                     <Avatar name={member.name} />
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium text-slate-800">{member.name}</p>
+                        <p className="text-sm font-medium text-[var(--text-strong)]">{member.name}</p>
                         {member.id === group.owner.id && (
-                          <span className="rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700">Owner</span>
+                          <span className="rounded bg-blue-400/20 px-1.5 py-0.5 text-[10px] font-semibold text-blue-300">Owner</span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-400">{member.email}</p>
+                      <p className="text-xs text-blue-200">{member.email}</p>
                     </div>
                   </div>
                   {isOwner && member.id !== userId && (
                     <button
                       onClick={() => void handleRemoveMember(member.id)}
-                      className="text-xs text-rose-500 hover:text-rose-700 transition"
+                      className="text-xs text-rose-400 hover:text-rose-600 transition"
                     >
                       Remove
                     </button>
@@ -334,8 +334,8 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
           </section>
 
           {isOwner && (
-            <section className="rounded-2xl border border-gray-200 bg-white/80 p-4">
-              <h3 className="mb-3 text-sm font-semibold text-slate-700">Invite Teammates</h3>
+            <section className="rounded-lg border border-blue-400/30 bg-[#2a3144] p-4">
+              <h3 className="mb-3 text-sm font-semibold text-[var(--text-strong)]">Invite Teammates</h3>
 
               {spotsLeft > 0 ? (
                 <form className="flex flex-col gap-2 sm:flex-row" onSubmit={(e) => void handleInvite(e)}>
@@ -344,31 +344,31 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
                     placeholder="Enter student email..."
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
-                    className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm outline-none ring-blue-300 transition focus:border-blue-400 focus:ring"
+                    className="flex-1 rounded-lg border border-blue-400/10 bg-[#23293a] px-3 py-2.5 text-sm text-[var(--text-body)] shadow-sm outline-none ring-blue-400 transition focus:border-blue-400 focus:ring"
                   />
                   <Button type="submit" disabled={inviting}>{inviting ? "Sending..." : "Send Invite"}</Button>
                 </form>
               ) : (
-                <p className="text-sm text-slate-400">Group is full (4/4 members).</p>
+                <p className="text-sm text-blue-300">Group is full (4/4 members).</p>
               )}
 
-              {inviteErr && <p className="mt-2 text-sm text-rose-600">{inviteErr}</p>}
+              {inviteErr && <p className="mt-2 text-sm text-rose-400">{inviteErr}</p>}
 
               {group.pendingInvites.length > 0 && (
                 <div className="mt-4">
-                  <p className="mb-2 text-xs font-medium uppercase tracking-wider text-slate-400">
+                  <p className="mb-2 text-xs font-medium uppercase tracking-wider text-blue-300">
                     Pending ({group.pendingInvites.length})
                   </p>
                   <ul className="space-y-2">
                     {group.pendingInvites.map((s) => (
-                      <li key={s.id} className="flex items-center justify-between rounded-xl border border-dashed border-blue-200 bg-blue-50/50 px-3 py-2.5">
+                      <li key={s.id} className="flex items-center justify-between rounded-lg border border-dashed border-blue-400/20 bg-[#23293a] px-3 py-2.5">
                         <div>
-                          <p className="text-sm font-medium text-slate-700">{s.name}</p>
-                          <p className="text-xs text-slate-400">{s.email}</p>
+                          <p className="text-sm font-medium text-[var(--text-strong)]">{s.name}</p>
+                          <p className="text-xs text-blue-200">{s.email}</p>
                         </div>
                         <button
                           onClick={() => void handleCancelInvite(s.id)}
-                          className="text-xs text-slate-400 hover:text-rose-500 transition"
+                          className="text-xs text-blue-300 hover:text-rose-400 transition"
                         >
                           Cancel
                         </button>
@@ -451,7 +451,7 @@ function StudentGroupPage() {
   const [newSubject, setNewSubject] = useState("");
   const [createErr, setCreateErr] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
-  const [allGroupNames, setAllGroupNames] = useState<{ name: string; branch: string; division: string }[]>([]);
+  const [allGroupNames, setAllGroupNames] = useState<{ name: string; branch: string; division: string; subject?: string }[]>([]);
   // Compute available group numbers for dropdown
   const branch = user?.branch || "";
   const division = user?.division || "";
@@ -533,16 +533,16 @@ function StudentGroupPage() {
           <form className="space-y-4" onSubmit={(e) => void handleCreateAnother(e)}>
             {/* Show branch and division info above the group name dropdown */}
             <div className="mb-2">
-              <span className="block text-xs text-slate-500">Branch:</span>
-              <span className="block text-sm font-semibold text-slate-700">{branch || <span className="text-rose-600">Not set</span>}</span>
-              <span className="block text-xs text-slate-500 mt-1">Division:</span>
-              <span className="block text-sm font-semibold text-slate-700">{division || <span className="text-rose-600">Not set</span>}</span>
+              <span className="block text-xs text-blue-400">Branch:</span>
+              <span className="block text-sm font-semibold text-[var(--text-strong)]">{branch || <span className="text-rose-400">Not set</span>}</span>
+              <span className="block text-xs text-blue-400 mt-1">Division:</span>
+              <span className="block text-sm font-semibold text-[var(--text-strong)]">{division || <span className="text-rose-400">Not set</span>}</span>
             </div>
             <label htmlFor="cg-name-empty" className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-700">Group Name</span>
+              <span className="mb-1 block text-sm font-medium text-[var(--text-strong)]">Group Name</span>
               <select
                 id="cg-name-empty"
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none ring-blue-300 transition focus:ring"
+                className="w-full rounded-lg border border-blue-400/30 bg-[var(--bg-0)] px-3 py-2 text-sm text-[var(--text-body)] shadow-sm outline-none ring-blue-400 transition focus:border-blue-400 focus:ring"
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
                 required
@@ -559,10 +559,10 @@ function StudentGroupPage() {
               <p className="text-sm text-rose-600 mt-2">Branch and division must be set in your profile to create a group.</p>
             )}
             <label htmlFor="cg-subject-empty" className="block">
-              <span className="mb-1 block text-sm font-medium text-slate-700">Subject</span>
+              <span className="mb-1 block text-sm font-medium text-[var(--text-strong)]">Subject</span>
               <select
                 id="cg-subject-empty"
-                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none ring-blue-300 transition focus:ring"
+                className="w-full rounded-lg border border-blue-400/30 bg-[var(--bg-0)] px-3 py-2 text-sm text-[var(--text-body)] shadow-sm outline-none ring-blue-400 transition focus:border-blue-400 focus:ring"
                 value={newSubject}
                 onChange={e => setNewSubject(e.target.value)}
                 required
@@ -588,9 +588,9 @@ function StudentGroupPage() {
     <div className="mx-auto max-w-6xl space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-blue-500">Your Groups</p>
-          <h2 className="mt-1 text-3xl font-bold tracking-tight text-slate-800">My Groups</h2>
-          <p className="mt-1 text-sm text-slate-500">Manage your groups, invites, and team members.</p>
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-blue-400">Your Groups</p>
+          <h2 className="mt-1 text-3xl font-bold tracking-tight text-[var(--text-strong)]">My Groups</h2>
+          <p className="mt-1 text-sm text-[var(--text-body)]">Manage your groups, invites, and team members.</p>
         </div>
         <Button onClick={() => { setCreateErr(""); setShowCreate(true); }}>Create Group</Button>
       </div>
@@ -627,9 +627,21 @@ function StudentGroupPage() {
               disabled={!branch || !division}
             >
               <option value="">{!branch || !division ? "Set branch and division in your profile" : "Select Group"}</option>
-              {branch && division && availableNumbers.map(n => (
-                <option key={n} value={`${branch}-${division}-${n}`}>{`${branch}-${division}-${n}`}</option>
-              ))}
+              {branch && division && availableNumbers.map(n => {
+                const groupValue = `${branch}-${division}-${n}`;
+                // Check if this group number is already taken for the selected subject
+                const taken = allGroupNames.some(g => g.name === groupValue && newSubject && g.subject === newSubject);
+                return (
+                  <option
+                    key={n}
+                    value={groupValue}
+                    disabled={taken}
+                  >
+                    {groupValue}
+                    {taken ? ' (Taken)' : ''}
+                  </option>
+                );
+              })}
             </select>
           </label>
           {/* Fallback/error if branch or division is missing */}

@@ -101,17 +101,17 @@ const StudentDashboard = () => {
   }
 
   return (
-    <div className="space-y-6 md:space-y-7">
-      <section className="rounded-2xl border border-gray-200 bg-white p-5 md:p-6">
+    <div className="grid gap-6 md:gap-8">
+      <section className="rounded-xl border border-blue-400/20 bg-[var(--bg-1)]/80 shadow-lg p-6">
         <p className="text-xs uppercase tracking-[0.2em] text-blue-500 font-medium">Overview</p>
-        <h2 className="mt-2 text-2xl font-bold text-slate-800 md:text-3xl">Student Dashboard</h2>
-        <p className="mt-3 max-w-3xl text-sm text-slate-500 md:text-base">
+        <h2 className="mt-2 text-2xl font-bold text-[var(--text-strong)] md:text-3xl">Student Dashboard</h2>
+        <p className="mt-3 max-w-3xl text-sm text-slate-400 md:text-base">
           Track assigned tasks, submit weekly progress updates, and keep your project documentation aligned with guide expectations.
         </p>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
-        <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <section className="grid gap-6 md:gap-8 lg:grid-cols-[1fr_1.2fr]">
+        <article className="rounded-lg border border-blue-400/20 bg-[var(--bg-2)]/80 p-5 shadow-md">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-blue-500">Group Details</p>
           {group ? (
             <div className="mt-3 space-y-3">
@@ -120,91 +120,91 @@ const StudentDashboard = () => {
                 <p className="mt-1 text-lg font-semibold text-slate-800">{group.name}</p>
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
-                <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                <div className="rounded-md border border-blue-400/10 bg-[var(--bg-0)]/80 p-3">
                   <p className="text-xs uppercase tracking-wider text-slate-400">Members</p>
-                  <p className="mt-1 text-sm font-medium text-slate-700">{group.members.length} / 4</p>
+                  <p className="mt-1 text-sm font-medium text-[var(--text-body)]">{group.members.length} / 4</p>
                 </div>
-                <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                <div className="rounded-md border border-blue-400/10 bg-[var(--bg-0)]/80 p-3">
                   <p className="text-xs uppercase tracking-wider text-slate-400">Guide</p>
-                  <p className="mt-1 text-sm font-medium text-slate-700">{group.guide?.name ?? "Not assigned"}</p>
+                  <p className="mt-1 text-sm font-medium text-[var(--text-body)]">{group.guide?.name ?? "Not assigned"}</p>
                 </div>
               </div>
             </div>
           ) : (
-            <p className="mt-3 text-sm text-slate-500">No group details available yet.</p>
+            <p className="mt-3 text-sm text-slate-400">No group details available yet.</p>
           )}
         </article>
 
-        <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <article className="rounded-lg border border-blue-400/20 bg-[var(--bg-2)]/80 p-5 shadow-md">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold text-slate-800">Notifications</h3>
-            <span className="rounded-full bg-blue-50 px-2 py-1 text-xs text-blue-600">Assigned by Guide</span>
+            <h3 className="text-base font-semibold text-[var(--text-strong)]">Notifications</h3>
+            <span className="rounded-full bg-blue-200/20 px-2 py-1 text-xs text-blue-400">Assigned by Guide</span>
           </div>
           <ul className="mt-4 space-y-2">
             {taskNotifications.map((task) => (
-              <li key={task.id} className="rounded-lg border border-blue-100 bg-blue-50/50 p-3">
-                <p className="text-sm font-medium text-slate-800">New task assigned: {task.title}</p>
-                <p className="mt-1 text-xs text-slate-500">Due {formatDate(task.dueDate)} · Priority {task.priority}</p>
+              <li key={task.id} className="rounded-md border border-blue-400/10 bg-[var(--bg-0)]/80 p-3">
+                <p className="text-sm font-medium text-[var(--text-strong)]">New task assigned: {task.title}</p>
+                <p className="mt-1 text-xs text-slate-400">Due {formatDate(task.dueDate)} · Priority {task.priority}</p>
               </li>
             ))}
             {taskNotifications.length === 0 ? (
-              <li className="text-xs text-slate-500">No new task notifications.</li>
+              <li className="text-xs text-slate-400">No new task notifications.</li>
             ) : null}
           </ul>
         </article>
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-6 md:gap-8 sm:grid-cols-2 xl:grid-cols-4">
         {quickStats.map((item) => (
-          <article key={item.label} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md">
-            <p className="text-xs uppercase tracking-wider text-slate-500">{item.label}</p>
+          <article key={item.label} className="rounded-lg border border-blue-400/20 bg-[var(--bg-1)]/80 p-4 shadow-md transition hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-lg">
+            <p className="text-xs uppercase tracking-wider text-slate-400">{item.label}</p>
             <p className={`mt-2 text-3xl font-bold ${item.tone}`}>{item.value}</p>
           </article>
         ))}
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
-        <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+      <section className="grid gap-6 md:gap-8 lg:grid-cols-[1.3fr_1fr]">
+        <article className="rounded-lg border border-blue-400/20 bg-[var(--bg-2)]/80 p-5 shadow-md">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-base font-semibold text-slate-800">Upcoming Deadlines</h3>
-            <span className="rounded-full bg-gray-100 px-2 py-1 text-xs text-slate-500">Sprint 3</span>
+            <h3 className="text-base font-semibold text-[var(--text-strong)]">Upcoming Deadlines</h3>
+            <span className="rounded-full bg-blue-200/20 px-2 py-1 text-xs text-blue-400">Sprint 3</span>
           </div>
 
           <ul className="space-y-3">
             {upcomingTasks.map((task) => (
-              <li key={task.title} className="rounded-lg border border-gray-100 bg-gray-50 p-3 transition hover:border-gray-300">
-                <p className="text-sm font-medium text-slate-800">{task.title}</p>
-                <p className="mt-1 text-xs text-slate-500">Due: {formatDate(task.dueDate)}</p>
-                <p className="mt-2 inline-block rounded bg-gray-100 px-2 py-1 text-xs text-slate-500">
+              <li key={task.title} className="rounded-md border border-blue-400/10 bg-[var(--bg-0)]/80 p-3 transition hover:border-blue-400">
+                <p className="text-sm font-medium text-[var(--text-strong)]">{task.title}</p>
+                <p className="mt-1 text-xs text-slate-400">Due: {formatDate(task.dueDate)}</p>
+                <p className="mt-2 inline-block rounded bg-blue-200/20 px-2 py-1 text-xs text-blue-400">
                   Status: {task.status} | Priority: {task.priority}
                 </p>
               </li>
             ))}
-            {upcomingTasks.length === 0 ? <li className="text-xs text-slate-500">No tasks assigned yet.</li> : null}
+            {upcomingTasks.length === 0 ? <li className="text-xs text-slate-400">No tasks assigned yet.</li> : null}
           </ul>
         </article>
 
-        <article className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-          <h3 className="text-base font-semibold text-slate-800">Recent Activity</h3>
+        <article className="rounded-lg border border-blue-400/20 bg-[var(--bg-2)]/80 p-5 shadow-md">
+          <h3 className="text-base font-semibold text-[var(--text-strong)]">Recent Activity</h3>
           <ul className="mt-4 space-y-3">
             {recentActivity.map((activity) => (
-              <li key={activity} className="rounded-lg border border-gray-100 bg-gray-50 p-3 text-sm text-slate-600 transition hover:border-gray-300">
+              <li key={activity} className="rounded-md border border-blue-400/10 bg-[var(--bg-0)]/80 p-3 text-sm text-[var(--text-body)] transition hover:border-blue-400">
                 {activity}
               </li>
             ))}
-            {recentActivity.length === 0 ? <li className="text-xs text-slate-500">No recent progress updates.</li> : null}
+            {recentActivity.length === 0 ? <li className="text-xs text-slate-400">No recent progress updates.</li> : null}
           </ul>
         </article>
       </section>
 
-      <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-        <h3 className="text-base font-semibold text-slate-800">Progress Snapshot</h3>
+      <section className="rounded-lg border border-blue-400/20 bg-[var(--bg-1)]/80 p-5 shadow-md">
+        <h3 className="text-base font-semibold text-[var(--text-strong)]">Progress Snapshot</h3>
         <div className="mt-3 space-y-2">
-          <div className="flex items-center justify-between text-sm text-slate-600">
+          <div className="flex items-center justify-between text-sm text-[var(--text-body)]">
             <span>Overall completion</span>
             <span>{averageCompletion}%</span>
           </div>
-          <div className="h-2 rounded-full bg-gray-200">
+          <div className="h-2 rounded-full bg-blue-200/20">
             <div
               className="h-2 rounded-full bg-blue-500"
               style={{ width: `${averageCompletion}%` }}

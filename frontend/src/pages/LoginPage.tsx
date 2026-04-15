@@ -43,8 +43,8 @@ const LoginPage = () => {
 
   return (
     <AuthLayout>
-      <h2 className="mb-1 text-2xl font-bold text-slate-900">Welcome Back</h2>
-      <p className="mb-6 text-sm text-slate-500">Login to manage your academic projects.</p>
+      <h2 className="mb-1 text-2xl font-bold text-[var(--text-strong)]">Welcome Back</h2>
+      <p className="mb-6 text-sm text-slate-400">Login to manage your academic projects.</p>
 
       <form className="space-y-4" onSubmit={onSubmit}>
         <Input id="email" label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -63,7 +63,7 @@ const LoginPage = () => {
           {isLoading ? "Signing in..." : "Sign In"}
         </Button>
 
-        <p className="text-center text-sm text-slate-600">
+        <p className="text-center text-sm text-slate-400">
           New here? <Link className="font-semibold text-brand-700 hover:underline" to="/signup">Create an account</Link>
         </p>
       </form>

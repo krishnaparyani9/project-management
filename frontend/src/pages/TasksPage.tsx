@@ -1,8 +1,8 @@
 const TasksPage = () => {
   return (
-    <div className="rounded-xl border border-blue-100 bg-white p-5 shadow-sm">
-      <h2 className="text-xl font-semibold text-slate-800">Tasks</h2>
-      <p className="mt-2 text-sm text-slate-500">View assigned tasks, deadlines, and progress statuses.</p>
+    <div className="rounded-xl border border-blue-500/30 bg-gradient-to-br from-[var(--bg-2)]/90 to-[var(--bg-1)]/80 p-8 shadow-lg">
+      <h2 className="text-xl font-semibold text-[var(--text-strong)]">Tasks</h2>
+      <p className="mt-2 text-sm text-[var(--text-body)]">View assigned tasks, deadlines, and progress statuses.</p>
     </div>
   );
 };
