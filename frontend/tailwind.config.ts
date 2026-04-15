@@ -3,20 +3,41 @@ import type { Config } from "tailwindcss";
 const config: Config = {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
+    fontFamily: {
+      sans: ["Inter", "Poppins", "Manrope", "Segoe UI", "sans-serif"],
+    },
     extend: {
       colors: {
-        brand: {
-          50: "#eff6ff",
-          100: "#dbeafe",
-          200: "#bfdbfe",
-          300: "#93c5fd",
-          400: "#60a5fa",
-          500: "#3b82f6",
-          600: "#2563eb",
-          700: "#1d4ed8",
-          800: "#1e40af",
-          900: "#1e3a8a"
+        primary: {
+          DEFAULT: "#2563EB",
+          light: "#3b82f6",
+          dark: "#1e40af"
+        },
+        background: {
+          light: "#F8FAFC",
+          dark: "#0F172A"
+        },
+        card: {
+          light: "#FFFFFF",
+          dark: "#1E293B"
+        },
+        text: {
+          light: "#0F172A",
+          dark: "#F1F5F9"
+        },
+        accent: {
+          DEFAULT: "#10B981"
+        },
+        border: {
+          DEFAULT: "#E2E8F0"
         }
+      },
+      borderRadius: {
+        xl: "12px"
+      },
+      boxShadow: {
+        card: "0 4px 24px 0 rgba(16, 24, 40, 0.08)",
+        soft: "0 2px 8px 0 rgba(16, 24, 40, 0.04)"
       }
     }
   },

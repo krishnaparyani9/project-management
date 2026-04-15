@@ -28,7 +28,7 @@ function normalizeGroups(data: ProjectGroup | ProjectGroup[] | null | undefined)
 
 function Avatar({ name }: { name: string }) {
   return (
-    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-sky-100 text-sm font-semibold text-blue-700 ring-1 ring-blue-200/60">
+    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--primary)]/15 text-sm font-semibold text-[var(--primary)] ring-1 ring-[var(--primary)]/25">
       {name.charAt(0).toUpperCase()}
     </div>
   );
@@ -39,25 +39,25 @@ function Avatar({ name }: { name: string }) {
 function GuideStatusCard({ guide }: { guide: ProjectGroup["guide"] }) {
   if (!guide) {
     return (
-      <article className="rounded-2xl border border-amber-200/70 bg-gradient-to-br from-amber-50 to-orange-50 p-5 shadow-sm">
+      <article className="lit-card rounded-2xl border border-amber-400/30 bg-[var(--card-bg)] p-5 shadow-card">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-amber-400" />
-          <p className="text-xs font-semibold uppercase tracking-wider text-amber-600">Guide Not Assigned</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-amber-300">Guide Not Assigned</p>
         </div>
-        <p className="mt-1 text-sm text-amber-700">
+        <p className="mt-1 text-sm text-amber-200">
           Your group hasn&apos;t been assigned a guide yet. The admin will assign one shortly.
         </p>
       </article>
     );
   }
   return (
-    <article className="rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-emerald-50 to-teal-50 p-5 shadow-sm">
+    <article className="lit-card rounded-2xl border border-emerald-400/30 bg-[var(--card-bg)] p-5 shadow-card">
       <div className="flex items-center gap-2">
         <span className="h-2 w-2 rounded-full bg-emerald-500" />
-        <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600">Guide Assigned</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-emerald-300">Guide Assigned</p>
       </div>
-      <p className="mt-1 text-base font-semibold text-slate-800">{guide.name}</p>
-      <p className="text-sm text-slate-500">{guide.email}</p>
+      <p className="mt-1 text-base font-semibold text-[var(--text-strong)]">{guide.name}</p>
+      <p className="text-sm text-[var(--text-muted)]">{guide.email}</p>
     </article>
   );
 }
@@ -85,22 +85,22 @@ function NoGroupView({ invites, onAccept, onDecline, onOpenCreate }: {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-blue-500">Groups</p>
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--primary)]">Groups</p>
         <h2 className="mt-1 text-3xl font-bold tracking-tight text-[var(--text-strong)]">Project Groups</h2>
       </div>
 
       {/* Pending invites */}
       {invites.length > 0 && (
         <section className="space-y-3">
-          <h3 className="text-sm font-semibold text-slate-700">
+          <h3 className="text-sm font-semibold text-[var(--text-strong)]">
             Pending Invites
-            <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">{invites.length}</span>
+            <span className="ml-2 rounded-full bg-[var(--primary)]/15 px-2 py-0.5 text-xs text-[var(--primary)]">{invites.length}</span>
           </h3>
           {invites.map((inv) => (
-            <div key={inv.groupId} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-blue-200/70 bg-white p-4 shadow-sm shadow-blue-100/40">
+            <div key={inv.groupId} className="lit-card flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 shadow-card">
               <div>
-                <p className="text-base font-semibold text-slate-800">{inv.groupName}</p>
-                <p className="mt-0.5 text-xs text-slate-500">
+                <p className="text-base font-semibold text-[var(--text-strong)]">{inv.groupName}</p>
+                <p className="mt-0.5 text-xs text-[var(--text-muted)]">
                   Invited by <span className="font-medium">{inv.owner.name}</span>
                   &nbsp;·&nbsp; {inv.memberCount}/4 members
                   &nbsp;·&nbsp; Subject: {inv.subject}
@@ -110,14 +110,14 @@ function NoGroupView({ invites, onAccept, onDecline, onOpenCreate }: {
                 <button
                   disabled={respondingId === inv.groupId}
                   onClick={() => void respond(inv.groupId, "accept")}
-                  className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm shadow-blue-200 hover:bg-blue-500 disabled:opacity-50 transition"
+                  className="rounded-lg bg-[var(--primary)] px-3 py-1.5 text-xs font-semibold text-white shadow-card hover:bg-[var(--primary-light)] disabled:opacity-50 transition"
                 >
                   Accept
                 </button>
                 <button
                   disabled={respondingId === inv.groupId}
                   onClick={() => void respond(inv.groupId, "decline")}
-                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-gray-50 disabled:opacity-50 transition"
+                  className="rounded-lg border border-[var(--border)] bg-[var(--bg-1)] px-3 py-1.5 text-xs font-semibold text-[var(--text-body)] hover:bg-[var(--bg-2)] disabled:opacity-50 transition"
                 >
                   Decline
                 </button>
@@ -128,7 +128,7 @@ function NoGroupView({ invites, onAccept, onDecline, onOpenCreate }: {
       )}
 
       {/* Empty state */}
-      <section className="rounded-xl border border-blue-500/30 bg-gradient-to-br from-[var(--bg-2)]/90 to-[var(--bg-1)]/80 p-8 shadow-lg">
+      <section className="lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-8 shadow-card">
         <h3 className="text-base font-semibold text-[var(--text-strong)]">No Groups Yet</h3>
         <p className="mt-1 text-sm text-[var(--text-body)]">
           Create your first group and invite up to 3 teammates. Each group can have up to 4 members.
@@ -261,7 +261,7 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
             setShowDetails(true);
           }
         }}
-        className="cursor-pointer rounded-2xl border border-blue-400/30 bg-[#23293a] p-6 shadow-xl transition hover:-translate-y-0.5 hover:border-blue-400 hover:shadow-2xl"
+        className="lit-card cursor-pointer rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-6 shadow-card transition hover:-translate-y-0.5 hover:border-[var(--primary)]/50"
       >
         <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-blue-400">Group</p>
         <h3 className="mt-1 text-2xl font-bold tracking-tight text-[var(--text-strong)]">{group.name}</h3>
@@ -285,7 +285,7 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
             {isOwner && (
               <button
                 onClick={() => { setEditName(group.name); setEditSubject(group.subject); setEditOpen(true); }}
-                className="shrink-0 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-gray-50 transition"
+                className="shrink-0 rounded-lg border border-[var(--border)] bg-[var(--bg-1)] px-3 py-1.5 text-xs font-medium text-[var(--text-body)] hover:bg-[var(--bg-2)] transition"
               >
                 Edit
               </button>
@@ -294,30 +294,30 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
 
           <GuideStatusCard guide={group.guide} />
 
-          <section className="rounded-lg border border-blue-400/30 bg-[#2a3144] p-4">
+          <section className="rounded-lg border border-[var(--border)] bg-[var(--bg-1)]/80 p-4">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-sm font-semibold text-[var(--text-strong)]">
                 Team Members
-                <span className="ml-2 text-xs font-normal text-blue-300">{group.members.length}/4</span>
+                <span className="ml-2 text-xs font-normal text-[var(--primary)]/80">{group.members.length}/4</span>
               </h3>
               {spotsLeft === 0
-                ? <span className="rounded-full bg-blue-400/10 px-2 py-0.5 text-xs text-blue-300">Full</span>
-                : <span className="text-xs text-blue-300">{spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left</span>
+                ? <span className="rounded-full bg-[var(--primary)]/15 px-2 py-0.5 text-xs text-[var(--primary)]">Full</span>
+                : <span className="text-xs text-[var(--primary)]/80">{spotsLeft} spot{spotsLeft !== 1 ? "s" : ""} left</span>
               }
             </div>
             <ul className="space-y-2">
               {group.members.map((member) => (
-                <li key={member.id} className="flex items-center justify-between rounded-lg border border-blue-400/10 bg-[#23293a] px-3 py-2.5">
+                <li key={member.id} className="flex items-center justify-between rounded-lg border border-[var(--border)] bg-[var(--bg-0)]/70 px-3 py-2.5">
                   <div className="flex items-center gap-3">
                     <Avatar name={member.name} />
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-medium text-[var(--text-strong)]">{member.name}</p>
                         {member.id === group.owner.id && (
-                          <span className="rounded bg-blue-400/20 px-1.5 py-0.5 text-[10px] font-semibold text-blue-300">Owner</span>
+                          <span className="rounded bg-[var(--primary)]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[var(--primary)]">Owner</span>
                         )}
                       </div>
-                      <p className="text-xs text-blue-200">{member.email}</p>
+                      <p className="text-xs text-[var(--text-muted)]">{member.email}</p>
                     </div>
                   </div>
                   {isOwner && member.id !== userId && (
@@ -334,7 +334,7 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
           </section>
 
           {isOwner && (
-            <section className="rounded-lg border border-blue-400/30 bg-[#2a3144] p-4">
+            <section className="rounded-lg border border-[var(--border)] bg-[var(--bg-1)]/80 p-4">
               <h3 className="mb-3 text-sm font-semibold text-[var(--text-strong)]">Invite Teammates</h3>
 
               {spotsLeft > 0 ? (
@@ -344,31 +344,31 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
                     placeholder="Enter student email..."
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
-                    className="flex-1 rounded-lg border border-blue-400/10 bg-[#23293a] px-3 py-2.5 text-sm text-[var(--text-body)] shadow-sm outline-none ring-blue-400 transition focus:border-blue-400 focus:ring"
+                    className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--bg-0)] px-3 py-2.5 text-sm text-[var(--text-body)] shadow-soft outline-none ring-[var(--focus)] transition focus:border-[var(--focus)] focus:ring"
                   />
                   <Button type="submit" disabled={inviting}>{inviting ? "Sending..." : "Send Invite"}</Button>
                 </form>
               ) : (
-                <p className="text-sm text-blue-300">Group is full (4/4 members).</p>
+                <p className="text-sm text-[var(--primary)]/80">Group is full (4/4 members).</p>
               )}
 
               {inviteErr && <p className="mt-2 text-sm text-rose-400">{inviteErr}</p>}
 
               {group.pendingInvites.length > 0 && (
                 <div className="mt-4">
-                  <p className="mb-2 text-xs font-medium uppercase tracking-wider text-blue-300">
+                  <p className="mb-2 text-xs font-medium uppercase tracking-wider text-[var(--primary)]/80">
                     Pending ({group.pendingInvites.length})
                   </p>
                   <ul className="space-y-2">
                     {group.pendingInvites.map((s) => (
-                      <li key={s.id} className="flex items-center justify-between rounded-lg border border-dashed border-blue-400/20 bg-[#23293a] px-3 py-2.5">
+                      <li key={s.id} className="flex items-center justify-between rounded-lg border border-dashed border-[var(--border)] bg-[var(--bg-0)]/70 px-3 py-2.5">
                         <div>
                           <p className="text-sm font-medium text-[var(--text-strong)]">{s.name}</p>
-                          <p className="text-xs text-blue-200">{s.email}</p>
+                          <p className="text-xs text-[var(--text-muted)]">{s.email}</p>
                         </div>
                         <button
                           onClick={() => void handleCancelInvite(s.id)}
-                          className="text-xs text-blue-300 hover:text-rose-400 transition"
+                          className="text-xs text-[var(--primary)]/80 hover:text-rose-400 transition"
                         >
                           Cancel
                         </button>
@@ -384,14 +384,14 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
             {isOwner ? (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="rounded-lg border border-rose-200 px-4 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50 transition"
+                className="rounded-lg border border-rose-400/30 bg-rose-500/10 px-4 py-2 text-sm font-medium text-rose-300 hover:bg-rose-500/20 transition"
               >
                 Delete Group
               </button>
             ) : (
               <button
                 onClick={() => void handleLeave()}
-                className="rounded-lg border border-rose-200 px-4 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50 transition"
+                className="rounded-lg border border-rose-400/30 bg-rose-500/10 px-4 py-2 text-sm font-medium text-rose-300 hover:bg-rose-500/20 transition"
               >
                 Leave Group
               </button>
@@ -407,7 +407,7 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
           <Input id="e-subject" label="Subject" value={editSubject} onChange={(e) => setEditSubject(e.target.value)} required />
           {editErr && <p className="text-sm text-rose-600">{editErr}</p>}
           <div className="flex justify-end gap-2">
-            <Button variant="secondary" className="border-gray-200 bg-white text-slate-600 hover:bg-gray-50" type="button" onClick={() => setEditOpen(false)}>Cancel</Button>
+            <Button variant="secondary" className="border-[var(--border)] bg-[var(--bg-1)] text-[var(--text-body)] hover:bg-[var(--bg-2)]" type="button" onClick={() => setEditOpen(false)}>Cancel</Button>
             <Button type="submit" disabled={editLoading}>{editLoading ? "Saving..." : "Save"}</Button>
           </div>
         </form>
@@ -415,13 +415,13 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
 
       <Modal open={showDeleteConfirm} title="Confirm Delete" onClose={() => setShowDeleteConfirm(false)}>
         <div className="space-y-4">
-          <p className="text-sm text-slate-600">
-            Are you sure you want to delete <span className="font-semibold text-slate-800">{group.name}</span>? This action cannot be undone.
+          <p className="text-sm text-[var(--text-muted)]">
+            Are you sure you want to delete <span className="font-semibold text-[var(--text-strong)]">{group.name}</span>? This action cannot be undone.
           </p>
           <div className="flex justify-end gap-2">
             <Button
               variant="secondary"
-              className="border-gray-200 bg-white text-slate-600 hover:bg-gray-50"
+              className="border-[var(--border)] bg-[var(--bg-1)] text-[var(--text-body)] hover:bg-[var(--bg-2)]"
               type="button"
               onClick={() => setShowDeleteConfirm(false)}
               disabled={deleteLoading}
@@ -448,7 +448,8 @@ function StudentGroupPage() {
   const [error, setError] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState("");
-  const [newSubject, setNewSubject] = useState("");
+  // Subject is fixed to 'EDI' for now
+  const newSubject = "EDI";
   const [createErr, setCreateErr] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
   const [allGroupNames, setAllGroupNames] = useState<{ name: string; branch: string; division: string; subject?: string }[]>([]);
@@ -501,14 +502,12 @@ function StudentGroupPage() {
   const handleCreateAnother = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newName.trim()) { setCreateErr("Group name is required."); return; }
-    if (!newSubject.trim()) { setCreateErr("Subject is required."); return; }
     setCreateErr("");
     setCreateLoading(true);
     try {
-      const res = await createGroup({ name: newName.trim(), subject: newSubject.trim() });
+      const res = await createGroup({ name: newName.trim(), subject: newSubject });
       setGroups((prev) => [res.data.data, ...prev]);
       setNewName("");
-      setNewSubject("");
       setShowCreate(false);
     } catch (err) {
       setCreateErr(errMsg(err));
@@ -517,7 +516,7 @@ function StudentGroupPage() {
     }
   };
 
-  if (isLoading) return <p className="text-sm text-slate-500">Loading...</p>;
+  if (isLoading) return <p className="text-sm text-[var(--text-muted)]">Loading...</p>;
   if (error) return <p className="text-sm text-rose-600">{error}</p>;
 
   if (groups.length === 0) {
@@ -554,28 +553,14 @@ function StudentGroupPage() {
                 ))}
               </select>
             </label>
-            {/* Fallback/error if branch or division is missing */}
-            {(!branch || !division) && (
-              <p className="text-sm text-rose-600 mt-2">Branch and division must be set in your profile to create a group.</p>
-            )}
-            <label htmlFor="cg-subject-empty" className="block">
-              <span className="mb-1 block text-sm font-medium text-[var(--text-strong)]">Subject</span>
-              <select
-                id="cg-subject-empty"
-                className="w-full rounded-lg border border-blue-400/30 bg-[var(--bg-0)] px-3 py-2 text-sm text-[var(--text-body)] shadow-sm outline-none ring-blue-400 transition focus:border-blue-400 focus:ring"
-                value={newSubject}
-                onChange={e => setNewSubject(e.target.value)}
-                required
-              >
-                <option value="">Select Subject</option>
-                <option value="EDI">EDI</option>
-                <option value="S1">S1</option>
-                <option value="S2">S2</option>
-              </select>
-            </label>
+            {/* Subject is fixed to EDI */}
+            <div className="mt-2">
+              <span className="block text-sm font-medium text-[var(--text-strong)]">Subject</span>
+              <span className="block text-base font-semibold text-blue-500">EDI</span>
+            </div>
             {createErr && <p className="text-sm text-rose-600">{createErr}</p>}
             <div className="flex justify-end gap-2">
-              <Button variant="secondary" className="border-gray-200 bg-white text-slate-600 hover:bg-gray-50" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
+              <Button variant="secondary" className="border-[var(--border)] bg-[var(--bg-1)] text-[var(--text-body)] hover:bg-[var(--bg-2)]" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
               <Button type="submit" disabled={createLoading}>{createLoading ? "Creating..." : "Create Group"}</Button>
             </div>
           </form>
@@ -611,16 +596,16 @@ function StudentGroupPage() {
         <form className="space-y-4" onSubmit={(e) => void handleCreateAnother(e)}>
           {/* Show branch and division info above the group name dropdown */}
           <div className="mb-2">
-            <span className="block text-xs text-slate-500">Branch:</span>
-            <span className="block text-sm font-semibold text-slate-700">{branch || <span className="text-rose-600">Not set</span>}</span>
-            <span className="block text-xs text-slate-500 mt-1">Division:</span>
-            <span className="block text-sm font-semibold text-slate-700">{division || <span className="text-rose-600">Not set</span>}</span>
+            <span className="block text-xs text-[var(--text-muted)]">Branch:</span>
+            <span className="block text-sm font-semibold text-[var(--text-strong)]">{branch || <span className="text-rose-400">Not set</span>}</span>
+            <span className="block text-xs text-[var(--text-muted)] mt-1">Division:</span>
+            <span className="block text-sm font-semibold text-[var(--text-strong)]">{division || <span className="text-rose-400">Not set</span>}</span>
           </div>
           <label htmlFor="cg-name" className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">Group Name</span>
+            <span className="mb-1 block text-sm font-medium text-[var(--text-strong)]">Group Name</span>
             <select
               id="cg-name"
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none ring-blue-300 transition focus:ring"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-0)] px-3 py-2 text-sm text-[var(--text-body)] shadow-soft outline-none ring-[var(--focus)] transition focus:border-[var(--focus)] focus:ring"
               value={newName}
               onChange={e => setNewName(e.target.value)}
               required
@@ -648,24 +633,14 @@ function StudentGroupPage() {
           {(!branch || !division) && (
             <p className="text-sm text-rose-600 mt-2">Branch and division must be set in your profile to create a group.</p>
           )}
-          <label htmlFor="cg-subject" className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">Subject</span>
-            <select
-              id="cg-subject"
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none ring-blue-300 transition focus:ring"
-              value={newSubject}
-              onChange={e => setNewSubject(e.target.value)}
-              required
-            >
-              <option value="">Select Subject</option>
-              <option value="EDI">EDI</option>
-              <option value="S1">S1</option>
-              <option value="S2">S2</option>
-            </select>
-          </label>
+          {/* Subject is fixed to EDI */}
+          <div className="mt-2">
+            <span className="block text-sm font-medium text-[var(--text-strong)]">Subject</span>
+            <span className="block text-base font-semibold text-[var(--primary)]">EDI</span>
+          </div>
           {createErr && <p className="text-sm text-rose-600">{createErr}</p>}
           <div className="flex justify-end gap-2">
-            <Button variant="secondary" className="border-gray-200 bg-white text-slate-600 hover:bg-gray-50" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
+            <Button variant="secondary" className="border-[var(--border)] bg-[var(--bg-1)] text-[var(--text-body)] hover:bg-[var(--bg-2)]" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
             <Button type="submit" disabled={createLoading}>{createLoading ? "Creating..." : "Create Group"}</Button>
           </div>
         </form>
@@ -688,34 +663,34 @@ function GuideGroupPage() {
       .finally(() => setIsLoading(false));
   }, []);
 
-  if (isLoading) return <p className="text-sm text-slate-500">Loading your groups...</p>;
+  if (isLoading) return <p className="text-sm text-[var(--text-muted)]">Loading your groups...</p>;
   if (error) return <p className="text-sm text-rose-600">{error}</p>;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-blue-500">Assigned to you</p>
-        <h2 className="mt-1 text-3xl font-bold tracking-tight text-slate-800">My Groups</h2>
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--primary)]">Assigned to you</p>
+        <h2 className="mt-1 text-3xl font-bold tracking-tight text-[var(--text-strong)]">My Groups</h2>
       </div>
       {groups.length === 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-10 text-center shadow-sm">
-          <p className="text-slate-400">No groups assigned to you yet.</p>
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-10 text-center shadow-card">
+          <p className="text-[var(--text-muted)]">No groups assigned to you yet.</p>
         </div>
       ) : (
         <div className="grid gap-5 lg:grid-cols-2">
           {groups.map((g) => (
-            <article key={g.id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-              <h3 className="font-semibold text-slate-800">{g.name}</h3>
-              <p className="mt-3 text-xs text-slate-500">Owner: {g.owner.name}</p>
+            <article key={g.id} className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
+              <h3 className="font-semibold text-[var(--text-strong)]">{g.name}</h3>
+              <p className="mt-3 text-xs text-[var(--text-muted)]">Owner: {g.owner.name}</p>
               <ul className="mt-3 space-y-1">
                 {g.members.map((m) => (
-                  <li key={m.id} className="rounded-lg border border-gray-100 bg-gray-50 p-2 text-sm text-slate-700">
+                  <li key={m.id} className="rounded-lg border border-[var(--border)] bg-[var(--bg-1)]/80 p-2 text-sm text-[var(--text-body)]">
                     <div className="flex items-center gap-2">
                       <Avatar name={m.name} />
                       <div>
-                        <p className="text-sm font-medium text-slate-800">{m.name}</p>
-                        <p className="text-xs text-slate-500">{m.email}</p>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-sm font-medium text-[var(--text-strong)]">{m.name}</p>
+                        <p className="text-xs text-[var(--text-muted)]">{m.email}</p>
+                        <p className="text-xs text-[var(--text-muted)]">
                           Branch: {m.branch ?? "-"} · Division: {m.division ?? "-"} · Roll No: {m.rollNo ?? "-"}
                         </p>
                       </div>
@@ -766,35 +741,35 @@ function AdminGroupPage() {
     }
   };
 
-  if (isLoading) return <p className="text-sm text-slate-500">Loading all groups...</p>;
+  if (isLoading) return <p className="text-sm text-[var(--text-muted)]">Loading all groups...</p>;
   if (error) return <p className="text-sm text-rose-600">{error}</p>;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-blue-500">Admin Panel</p>
-        <h2 className="mt-1 text-3xl font-bold tracking-tight text-slate-800">All Project Groups</h2>
-        <p className="mt-1 text-sm text-slate-500">Review groups and assign guides.</p>
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--primary)]">Admin Panel</p>
+        <h2 className="mt-1 text-3xl font-bold tracking-tight text-[var(--text-strong)]">All Project Groups</h2>
+        <p className="mt-1 text-sm text-[var(--text-muted)]">Review groups and assign guides.</p>
       </div>
 
       {groups.length === 0 ? (
-        <div className="rounded-xl border border-gray-200 bg-white p-10 text-center shadow-sm">
-          <p className="text-slate-400">No groups have been created yet.</p>
+        <div className="lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-10 text-center shadow-card">
+          <p className="text-[var(--text-muted)]">No groups have been created yet.</p>
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
           {groups.map((g) => (
-            <article key={g.id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+            <article key={g.id} className="reveal-up delay-2 hover-glow lit-card rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <h3 className="font-semibold text-slate-800">{g.name}</h3>
-                  <p className="mt-0.5 text-xs text-slate-500">
+                  <h3 className="font-semibold text-[var(--text-strong)]">{g.name}</h3>
+                  <p className="mt-0.5 text-xs text-[var(--text-muted)]">
                     Owner: {g.owner.name} · {g.members.length}/4 members
                   </p>
                 </div>
                 <button
                   onClick={() => { setAssignTarget(g); setSelectedGuideId(g.guide?.id ?? ""); setAssignErr(""); }}
-                  className="shrink-0 rounded-lg border border-blue-200 px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 transition"
+                  className="shrink-0 rounded-lg border border-[var(--primary)]/40 bg-[var(--primary)]/10 px-3 py-1.5 text-xs font-medium text-[var(--primary)] hover:bg-[var(--primary)]/20 transition"
                 >
                   {g.guide ? "Change Guide" : "Assign Guide"}
                 </button>
@@ -814,9 +789,9 @@ function AdminGroupPage() {
       >
         <form className="space-y-4" onSubmit={(e) => void handleAssign(e)}>
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">Select Guide</span>
+            <span className="mb-1 block text-sm font-medium text-[var(--text-strong)]">Select Guide</span>
             <select
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm outline-none ring-blue-300 transition focus:ring"
+              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-0)] px-3 py-2 text-sm text-[var(--text-body)] shadow-soft outline-none ring-[var(--focus)] transition focus:border-[var(--focus)] focus:ring"
               value={selectedGuideId}
               onChange={(e) => setSelectedGuideId(e.target.value)}
             >
@@ -828,7 +803,7 @@ function AdminGroupPage() {
           </label>
           {assignErr && <p className="text-sm text-rose-600">{assignErr}</p>}
           <div className="flex justify-end gap-2">
-            <Button variant="secondary" className="border-gray-200 bg-white text-slate-600 hover:bg-gray-50" type="button" onClick={() => setAssignTarget(null)}>Cancel</Button>
+            <Button variant="secondary" className="border-[var(--border)] bg-[var(--bg-1)] text-[var(--text-body)] hover:bg-[var(--bg-2)]" type="button" onClick={() => setAssignTarget(null)}>Cancel</Button>
             <Button type="submit" disabled={assigning}>{assigning ? "Saving..." : "Confirm"}</Button>
           </div>
         </form>

@@ -1,18 +1,29 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 
+/* Theme variables for light and dark mode */
 :root {
   color-scheme: light dark;
+  --primary: #2563EB;
+  --primary-light: #3b82f6;
+  --primary-dark: #1e40af;
   --bg-0: #f8fafc;
-  --bg-1: #eef2ff;
-  --bg-2: #e2e8f0;
+  --bg-1: #ffffff;
+  --bg-2: #f1f5f9;
+  --card-bg: #ffffff;
   --text-strong: #0f172a;
   --text-body: #1e293b;
-  --focus: #3b82f6;
+  --text-muted: #64748b;
+  --accent: #10B981;
+  --border: #e2e8f0;
+  --focus: #2563eb;
+  --shadow-card: 0 4px 24px 0 rgba(16, 24, 40, 0.08);
+  --shadow-soft: 0 2px 8px 0 rgba(16, 24, 40, 0.04);
+  --radius-xl: 12px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -20,9 +31,12 @@
     --bg-0: #0f172a;
     --bg-1: #1e293b;
     --bg-2: #334155;
+    --card-bg: #1e293b;
     --text-strong: #f1f5f9;
     --text-body: #e2e8f0;
+    --text-muted: #94a3b8;
     --focus: #60a5fa;
+    --border: #334155;
   }
 }
 
@@ -30,7 +44,7 @@
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-family: "Inter", "Poppins", "Manrope", "Segoe UI", sans-serif;
   background: var(--bg-0);
   color: var(--text-body);
   -webkit-font-smoothing: antialiased;
@@ -41,11 +55,6 @@ body {
   min-height: 100vh;
   color: var(--text-strong);
   background: var(--bg-0);
-}
-
-#root {
-  min-height: 100vh;
-  color: var(--text-strong);
 }
 
 * {
@@ -59,4 +68,90 @@ body {
 :focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
+}
+
+.dashboard-ambient {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.dashboard-ambient::before,
+.dashboard-ambient::after {
+  content: "";
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(50px);
+}
+
+.dashboard-ambient::before {
+  width: 520px;
+  height: 520px;
+  top: -220px;
+  right: -120px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.34) 0%, rgba(37, 99, 235, 0.08) 36%, rgba(15, 23, 42, 0) 72%);
+}
+
+.dashboard-ambient::after {
+  width: 460px;
+  height: 460px;
+  bottom: -210px;
+  left: -120px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.24) 0%, rgba(30, 64, 175, 0.08) 34%, rgba(15, 23, 42, 0) 72%);
+}
+
+.dashboard-content {
+  position: relative;
+  z-index: 1;
+}
+
+.lit-card {
+  background-image: linear-gradient(160deg, rgba(37, 99, 235, 0.14) -20%, rgba(59, 130, 246, 0.06) 34%, rgba(15, 23, 42, 0) 76%);
+}
+
+.reveal-up {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: revealUp 0.45s ease-out forwards;
+}
+
+.delay-1 { animation-delay: 0.04s; }
+.delay-2 { animation-delay: 0.08s; }
+.delay-3 { animation-delay: 0.12s; }
+.delay-4 { animation-delay: 0.16s; }
+.delay-5 { animation-delay: 0.2s; }
+.delay-6 { animation-delay: 0.24s; }
+
+.hover-glow {
+  transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+
+.hover-glow:hover {
+  border-color: rgba(59, 130, 246, 0.45);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.22), 0 18px 36px -20px rgba(37, 99, 235, 0.65);
+}
+
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-up {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .hover-glow {
+    transition: none;
+  }
 }
