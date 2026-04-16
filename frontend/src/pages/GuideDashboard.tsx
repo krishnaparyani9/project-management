@@ -129,7 +129,17 @@ const GuideDashboard = () => {
               <div className="space-y-4">
                 <div>
                   <p className="text-base font-bold text-[var(--primary)]">Group Name: <span className="text-[var(--text-strong)]">{selectedGroup.name}</span></p>
-                  <p className="text-sm text-emerald-400">Guide: <span className="text-[var(--text-strong)]">{selectedGroup.guide?.name ?? "Not assigned"}</span></p>
+                  <p className="text-sm text-emerald-400">Guide: <span className="text-[var(--text-strong)]">{selectedGroup.ediGuide?.name ?? "Not assigned"}</span></p>
+                  <p className="text-sm text-[var(--text-body)]">
+                    GitHub Repo:{" "}
+                    {selectedGroup.repositoryUrl ? (
+                      <a href={selectedGroup.repositoryUrl} target="_blank" rel="noreferrer" className="text-[var(--primary)] hover:underline">
+                        {selectedGroup.repositoryUrl}
+                      </a>
+                    ) : (
+                      <span className="text-[var(--text-muted)]">Not added</span>
+                    )}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-[var(--primary)] mb-2">Members</p>

@@ -22,7 +22,8 @@ import { asyncHandler } from "../utils/asyncHandler";
 
 const POPULATE = [
 	{ path: "owner", select: "name email" },
-	{ path: "guide", select: "name email" },
+	{ path: "ediGuide", select: "name email" },
+	{ path: "cpGuide", select: "name email" },
 	{ path: "members", select: "name email role branch division rollNo" },
 	{ path: "pendingInvites", select: "name email" }
 ];
@@ -45,12 +46,20 @@ const fu = (u: PopUser) => ({
 	rollNo: u.rollNo
 });
 
+const normalizeRepositoryUrl = (value: string) => value.trim().replace(/\/+$/, "");
+const isValidGithubRepositoryUrl = (value: string) =>
+	/^https?:\/\/(www\.)?github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\.git)?$/i.test(value);
+
 const formatGroup = (g: Record<string, unknown>) => ({
 	id: String(g._id),
 	name: g.name as string,
 	subject: (g.subject as string) || "General",
+	repositoryUrl: (g.repositoryUrl as string | null | undefined) ?? null,
+	isEdiRegistered: Boolean(g.isEdiRegistered),
 	owner: fu(g.owner as PopUser),
-	guide: g.guide ? fu(g.guide as PopUser) : null,
+	guide: g.ediGuide ? fu(g.ediGuide as PopUser) : null,
+	ediGuide: g.ediGuide ? fu(g.ediGuide as PopUser) : null,
+	cpGuide: g.cpGuide ? fu(g.cpGuide as PopUser) : null,
 	members: (g.members as PopUser[]).map((m) => ({ ...fu(m), role: m.role ?? "student" })),
 	pendingInvites: (g.pendingInvites as PopUser[]).map(fu)
 });
@@ -58,7 +67,14 @@ const formatGroup = (g: Record<string, unknown>) => ({
 // ─── Student: create a group (becomes owner + first member) ──────────────────
 export const createGroup = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 	const ownerId = req.user!.userId;
-	const { name, subject } = req.body as { name?: string; subject?: string };
+	const { name, subject, repositoryUrl } = req.body as { name?: string; subject?: string; repositoryUrl?: string | null };
+	const user = await UserModel.findById(ownerId).select("hasCreatedGroup").lean();
+	const existingGroup = await ProjectGroupModel.exists({ $or: [{ owner: ownerId }, { members: ownerId }] });
+
+	if (user?.hasCreatedGroup || existingGroup) {
+		res.status(409).json(new ApiResponse(false, "You can create only one group", null));
+		return;
+	}
 
 	if (!name?.trim()) {
 		res.status(400).json(new ApiResponse(false, "Group name is required", null));
@@ -70,16 +86,29 @@ export const createGroup = asyncHandler(async (req: AuthenticatedRequest, res: R
 		return;
 	}
 
+	let normalizedRepositoryUrl: string | null = null;
+	if (repositoryUrl && repositoryUrl.trim()) {
+		normalizedRepositoryUrl = normalizeRepositoryUrl(repositoryUrl);
+		if (!isValidGithubRepositoryUrl(normalizedRepositoryUrl)) {
+			res.status(400).json(new ApiResponse(false, "Provide a valid GitHub repository URL", null));
+			return;
+		}
+	}
+
 	const group = await ProjectGroupModel.create({
 		name: name.trim(),
 		subject: subject.trim(),
+		repositoryUrl: normalizedRepositoryUrl,
+		isEdiRegistered: false,
 		owner: new Types.ObjectId(ownerId),
-		guide: null,
+		ediGuide: null,
+		cpGuide: null,
 		members: [new Types.ObjectId(ownerId)],
 		pendingInvites: []
 	});
 
 	const populated = await group.populate(POPULATE);
+	await UserModel.updateOne({ _id: ownerId }, { $set: { hasCreatedGroup: true } });
 	res.status(201).json(new ApiResponse(true, "Group created", formatGroup(populated.toObject() as unknown as Record<string, unknown>)));
 });
 
@@ -265,7 +294,7 @@ export const leaveGroup = asyncHandler(async (req: AuthenticatedRequest, res: Re
 export const updateGroup = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 	const ownerId = req.user!.userId;
 	const { id } = req.params as { id: string };
-	const { name, subject } = req.body as { name?: string; subject?: string };
+	const { name, subject, repositoryUrl } = req.body as { name?: string; subject?: string; repositoryUrl?: string | null };
 
 	const group = await ProjectGroupModel.findOne({ _id: id, owner: ownerId });
 	if (!group) {
@@ -275,10 +304,46 @@ export const updateGroup = asyncHandler(async (req: AuthenticatedRequest, res: R
 
 	if (name?.trim()) group.name = name.trim();
 	if (subject?.trim()) group.subject = subject.trim();
+	if (repositoryUrl !== undefined) {
+		if (!repositoryUrl || !repositoryUrl.trim()) {
+			group.repositoryUrl = null;
+		} else {
+			const normalizedRepositoryUrl = normalizeRepositoryUrl(repositoryUrl);
+			if (!isValidGithubRepositoryUrl(normalizedRepositoryUrl)) {
+				res.status(400).json(new ApiResponse(false, "Provide a valid GitHub repository URL", null));
+				return;
+			}
+			group.repositoryUrl = normalizedRepositoryUrl;
+		}
+	}
 	await group.save();
 
 	const populated = await group.populate(POPULATE);
 	res.status(200).json(new ApiResponse(true, "Group updated", formatGroup(populated.toObject() as unknown as Record<string, unknown>)));
+});
+
+// ─── Student owner: register group for EDI guide assignment ─────────────────
+export const registerEdiGroup = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+	const ownerId = req.user!.userId;
+	const { id } = req.params as { id: string };
+
+	const group = await ProjectGroupModel.findOne({ _id: id, owner: ownerId });
+	if (!group) {
+		res.status(404).json(new ApiResponse(false, "Group not found or unauthorized", null));
+		return;
+	}
+
+	if (group.isEdiRegistered) {
+		const populatedGroup = await group.populate(POPULATE);
+		res.status(200).json(new ApiResponse(true, "Group already registered for EDI", formatGroup(populatedGroup.toObject() as unknown as Record<string, unknown>)));
+		return;
+	}
+
+	group.isEdiRegistered = true;
+	await group.save();
+
+	const populated = await group.populate(POPULATE);
+	res.status(200).json(new ApiResponse(true, "Group registered for EDI successfully", formatGroup(populated.toObject() as unknown as Record<string, unknown>)));
 });
 
 // ─── Student owner: delete group ─────────────────────────────────────────────
@@ -299,13 +364,53 @@ export const deleteGroup = asyncHandler(async (req: AuthenticatedRequest, res: R
 export const getGuideGroups = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 	const guideId = req.user!.userId;
 
-	const groups = await ProjectGroupModel.find({ guide: guideId }).populate(POPULATE).sort({ createdAt: -1 }).lean();
+	const groups = await ProjectGroupModel.find({ ediGuide: guideId }).populate(POPULATE).sort({ createdAt: -1 }).lean();
 
 	res.status(200).json(new ApiResponse(true, "Guide groups fetched", groups.map((g) => formatGroup(g as unknown as Record<string, unknown>))));
 });
 
 // ─── Admin: assign or unassign a guide to a group ────────────────────────────
 export const assignGuide = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+	const { id } = req.params as { id: string };
+	const { guideId } = req.body as { guideId?: string | null };
+
+	const group = await ProjectGroupModel.findById(id);
+	if (!group) {
+		res.status(404).json(new ApiResponse(false, "Group not found", null));
+		return;
+	}
+
+	if (!group.isEdiRegistered) {
+		res.status(400).json(new ApiResponse(false, "Group must be registered in EDI before guide assignment", null));
+		return;
+	}
+
+	if (guideId) {
+		if (!Types.ObjectId.isValid(guideId)) {
+			res.status(400).json(new ApiResponse(false, "Invalid guide ID", null));
+			return;
+		}
+		const guide = await UserModel.findOne({ _id: guideId, role: "guide" });
+		if (!guide) {
+			res.status(404).json(new ApiResponse(false, "Guide not found", null));
+			return;
+		}
+		if (group.cpGuide && String(group.cpGuide) === guideId) {
+			res.status(400).json(new ApiResponse(false, "EDI and Course Project guides must be different", null));
+			return;
+		}
+		group.ediGuide = new Types.ObjectId(guideId);
+	} else {
+		group.ediGuide = undefined;
+	}
+
+	await group.save();
+	const populated = await group.populate(POPULATE);
+	res.status(200).json(new ApiResponse(true, "EDI guide assignment updated", formatGroup(populated.toObject() as unknown as Record<string, unknown>)));
+});
+
+// ─── Admin: assign or unassign a course project guide ───────────────────────
+export const assignCpGuide = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 	const { id } = req.params as { id: string };
 	const { guideId } = req.body as { guideId?: string | null };
 
@@ -325,21 +430,25 @@ export const assignGuide = asyncHandler(async (req: AuthenticatedRequest, res: R
 			res.status(404).json(new ApiResponse(false, "Guide not found", null));
 			return;
 		}
-		group.guide = new Types.ObjectId(guideId);
+		if (group.ediGuide && String(group.ediGuide) === guideId) {
+			res.status(400).json(new ApiResponse(false, "EDI and Course Project guides must be different", null));
+			return;
+		}
+		group.cpGuide = new Types.ObjectId(guideId);
 	} else {
-		group.guide = undefined;
+		group.cpGuide = undefined;
 	}
 
 	await group.save();
 	const populated = await group.populate(POPULATE);
-	res.status(200).json(new ApiResponse(true, "Guide assignment updated", formatGroup(populated.toObject() as unknown as Record<string, unknown>)));
+	res.status(200).json(new ApiResponse(true, "Course project guide assignment updated", formatGroup(populated.toObject() as unknown as Record<string, unknown>)));
 });
 
 // ─── Admin: view all groups ───────────────────────────────────────────────────
 export const getAllGroups = asyncHandler(async (_req: AuthenticatedRequest, res: Response) => {
-	const groups = await ProjectGroupModel.find().populate(POPULATE).sort({ createdAt: -1 }).lean();
+	const groups = await ProjectGroupModel.find({ isEdiRegistered: true }).populate(POPULATE).sort({ createdAt: -1 }).lean();
 
-	res.status(200).json(new ApiResponse(true, "All groups fetched", groups.map((g) => formatGroup(g as unknown as Record<string, unknown>))));
+	res.status(200).json(new ApiResponse(true, "EDI-registered groups fetched", groups.map((g) => formatGroup(g as unknown as Record<string, unknown>))));
 });
 
 // ─── Admin: list all guide users ─────────────────────────────────────────────

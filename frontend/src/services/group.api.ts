@@ -11,10 +11,10 @@ export const fetchGuideGroups   = () => api.get<AR<ProjectGroup[]>>("/groups/gui
 export const fetchAllGroups     = () => api.get<AR<ProjectGroup[]>>("/groups/all");
 export const fetchAllGuides     = () => api.get<AR<{ id: string; name: string; email: string }[]>>("/groups/guides-list");
 
-export const createGroup = (data: { name: string; subject: string }) =>
+export const createGroup = (data: { name: string; subject: string; repositoryUrl?: string }) =>
 	api.post<AR<ProjectGroup>>("/groups", data);
 
-export const updateGroup = (id: string, data: { name?: string; subject?: string }) =>
+export const updateGroup = (id: string, data: { name?: string; subject?: string; repositoryUrl?: string }) =>
 	api.patch<AR<ProjectGroup>>(`/groups/${id}`, data);
 
 export const deleteGroup = (id: string) =>
@@ -37,3 +37,9 @@ export const removeMember = (groupId: string, memberId: string) =>
 
 export const assignGuide = (groupId: string, guideId: string | null) =>
 	api.post<AR<ProjectGroup>>(`/groups/${groupId}/assign-guide`, { guideId });
+
+export const assignCpGuide = (groupId: string, guideId: string | null) =>
+	api.post<AR<ProjectGroup>>(`/groups/${groupId}/assign-cp-guide`, { guideId });
+
+export const registerEdiGroup = (groupId: string) =>
+	api.post<AR<ProjectGroup>>(`/groups/${groupId}/register-edi`);

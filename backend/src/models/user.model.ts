@@ -7,6 +7,7 @@ export interface IUser {
 	email: string;
 	password: string;
 	role: UserRole;
+	hasCreatedGroup: boolean;
 	branch?: string;
 	division?: string;
 	rollNo?: string;
@@ -22,6 +23,10 @@ const userSchema = new Schema<IUser>(
 		       default: "student",
 		       required: true
 	       },
+		      	hasCreatedGroup: {
+		       		type: Boolean,
+		       		default: false
+		       	},
 	       name: {
 		       type: String,
 		       required: true,

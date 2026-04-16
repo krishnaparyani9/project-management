@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 import { fetchMyGroup } from "../services/group.api";
 import { fetchMyProgressUpdates } from "../services/progress.api";
 import { fetchMyTasks } from "../services/task.api";
@@ -110,6 +111,26 @@ const StudentDashboard = () => {
         </p>
       </section>
 
+      <section className="grid gap-4 md:grid-cols-2">
+        <Link
+          to="/student/edi-major-project"
+          className="reveal-up delay-2 hover-glow lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card transition hover:-translate-y-0.5 hover:border-[var(--primary)]/50"
+        >
+          <p className="text-xs uppercase tracking-[0.2em] text-blue-500 font-medium">Major Project</p>
+          <h3 className="mt-2 text-xl font-semibold text-[var(--text-strong)]">EDI</h3>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">Open the EDI major project workspace, group details, and submission flow.</p>
+        </Link>
+
+        <Link
+          to="/student/course-project"
+          className="reveal-up delay-3 hover-glow lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card transition hover:-translate-y-0.5 hover:border-[var(--primary)]/50"
+        >
+          <p className="text-xs uppercase tracking-[0.2em] text-emerald-500 font-medium">Course Project</p>
+          <h3 className="mt-2 text-xl font-semibold text-[var(--text-strong)]">CP</h3>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">Open the course project workspace for planning, tracking, and team coordination.</p>
+        </Link>
+      </section>
+
       <section className="grid gap-6 md:gap-8 lg:grid-cols-[1fr_1.2fr]">
         <article className="reveal-up delay-2 hover-glow lit-card rounded-lg border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-blue-500">Group Details</p>
@@ -126,8 +147,18 @@ const StudentDashboard = () => {
                 </div>
                 <div className="rounded-md border border-[var(--border)] bg-[var(--bg-1)]/80 p-3">
                   <p className="text-xs uppercase tracking-wider text-[var(--text-muted)]">Guide</p>
-                  <p className="mt-1 text-sm font-medium text-[var(--text-body)]">{group.guide?.name ?? "Not assigned"}</p>
+                  <p className="mt-1 text-sm font-medium text-[var(--text-body)]">{group.ediGuide?.name ?? "Not assigned"}</p>
                 </div>
+              </div>
+              <div className="rounded-md border border-[var(--border)] bg-[var(--bg-1)]/80 p-3">
+                <p className="text-xs uppercase tracking-wider text-[var(--text-muted)]">GitHub Repository</p>
+                {group.repositoryUrl ? (
+                  <a href={group.repositoryUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block text-sm font-medium text-[var(--primary)] hover:underline">
+                    {group.repositoryUrl}
+                  </a>
+                ) : (
+                  <p className="mt-1 text-sm font-medium text-[var(--text-muted)]">Not added yet</p>
+                )}
               </div>
             </div>
           ) : (

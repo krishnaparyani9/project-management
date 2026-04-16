@@ -3,8 +3,9 @@ import {
 	createGroup, getMyGroup, getMyInvites,
 	inviteStudent, respondToInvite, cancelInvite,
 	removeMember, leaveGroup, updateGroup, deleteGroup,
+	registerEdiGroup,
 	getGuideGroups,
-	assignGuide, getAllGroups, getAllGuides,
+	assignGuide, assignCpGuide, getAllGroups, getAllGuides,
 	getAllGroupNames
 } from "../controllers/group.controller";
 import { authenticate } from "../middleware/auth.middleware";
@@ -27,6 +28,7 @@ router.post("/", authenticate, authorizeRoles("student"), createGroup);
 router.patch("/:id",                        authenticate, authorizeRoles("student"), updateGroup);
 router.delete("/:id",                       authenticate, authorizeRoles("student"), deleteGroup);
 router.delete("/:id/leave",                 authenticate, authorizeRoles("student"), leaveGroup);
+router.post("/:id/register-edi",           authenticate, authorizeRoles("student"), registerEdiGroup);
 router.post("/:id/invites",                 authenticate, authorizeRoles("student"), inviteStudent);
 router.post("/:id/invites/respond",         authenticate, authorizeRoles("student"), respondToInvite);
 router.delete("/:id/invites/:studentId",    authenticate, authorizeRoles("student"), cancelInvite);
@@ -34,5 +36,6 @@ router.delete("/:id/members/:memberId",     authenticate, authorizeRoles("studen
 
 // Admin: guide assignment
 router.post("/:id/assign-guide", authenticate, authorizeRoles("admin"), assignGuide);
+router.post("/:id/assign-cp-guide", authenticate, authorizeRoles("admin"), assignCpGuide);
 
 export default router;

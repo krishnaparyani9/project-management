@@ -30,8 +30,12 @@ export interface ProjectGroup {
   id: string;
   name: string;
   subject: string;
-  owner: GroupOwner;
+  repositoryUrl?: string | null;
+  isEdiRegistered: boolean;
+  ediGuide: GuideUser | null;
+  cpGuide: GuideUser | null;
   guide: GuideUser | null;
+  owner: GroupOwner;
   members: GroupMember[];
   pendingInvites: PendingInviteStudent[];
 }

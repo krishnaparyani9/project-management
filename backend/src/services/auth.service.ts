@@ -54,6 +54,7 @@ interface AuthResult {
 		name: string;
 		email: string;
 		role: UserRole;
+		hasCreatedGroup: boolean;
 		branch?: string;
 		division?: string;
 		rollNo?: string;
@@ -83,6 +84,7 @@ const toAuthResult = (user: {
 	name: string;
 	email: string;
 	role: UserRole;
+	hasCreatedGroup?: boolean;
 	branch?: string;
 	division?: string;
 	rollNo?: string;
@@ -96,6 +98,7 @@ const toAuthResult = (user: {
 			name: user.name,
 			email: user.email,
 			role: user.role,
+			hasCreatedGroup: user.hasCreatedGroup ?? false,
 			branch: user.branch,
 			division: user.division,
 			rollNo: user.rollNo
@@ -117,6 +120,7 @@ export const registerUser = async (input: SignupInput): Promise<AuthResult> => {
 		email: payload.email.toLowerCase(),
 		password: hashedPassword,
 		role: payload.role,
+		hasCreatedGroup: false,
 		branch: payload.role === "student" ? payload.branch?.trim() : undefined,
 		division: payload.role === "student" ? payload.division?.trim() : undefined,
 		rollNo: payload.role === "student" ? payload.rollNo?.trim() : undefined
@@ -153,6 +157,7 @@ export const getUserById = async (userId: string) => {
 		name: user.name,
 		email: user.email,
 		role: user.role,
+		hasCreatedGroup: user.hasCreatedGroup ?? false,
 		branch: user.branch,
 		division: user.division,
 		rollNo: user.rollNo

@@ -34,41 +34,14 @@ function Avatar({ name }: { name: string }) {
   );
 }
 
-// ─── Guide status card ────────────────────────────────────────────────────────
-
-function GuideStatusCard({ guide }: { guide: ProjectGroup["guide"] }) {
-  if (!guide) {
-    return (
-      <article className="lit-card rounded-2xl border border-amber-400/30 bg-[var(--card-bg)] p-5 shadow-card">
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-amber-400" />
-          <p className="text-xs font-semibold uppercase tracking-wider text-amber-300">Guide Not Assigned</p>
-        </div>
-        <p className="mt-1 text-sm text-amber-200">
-          Your group hasn&apos;t been assigned a guide yet. The admin will assign one shortly.
-        </p>
-      </article>
-    );
-  }
-  return (
-    <article className="lit-card rounded-2xl border border-emerald-400/30 bg-[var(--card-bg)] p-5 shadow-card">
-      <div className="flex items-center gap-2">
-        <span className="h-2 w-2 rounded-full bg-emerald-500" />
-        <p className="text-xs font-semibold uppercase tracking-wider text-emerald-300">Guide Assigned</p>
-      </div>
-      <p className="mt-1 text-base font-semibold text-[var(--text-strong)]">{guide.name}</p>
-      <p className="text-sm text-[var(--text-muted)]">{guide.email}</p>
-    </article>
-  );
-}
-
 // ─── Student: no group yet ────────────────────────────────────────────────────
 
-function NoGroupView({ invites, onAccept, onDecline, onOpenCreate }: {
+function NoGroupView({ invites, onAccept, onDecline, onOpenCreate, canCreateGroup }: {
   invites: PendingInvite[];
   onAccept: (groupId: string) => Promise<void>;
   onDecline: (groupId: string) => Promise<void>;
   onOpenCreate: () => void;
+  canCreateGroup: boolean;
 }) {
   const [respondingId, setRespondingId] = useState<string | null>(null);
 
@@ -134,7 +107,11 @@ function NoGroupView({ invites, onAccept, onDecline, onOpenCreate }: {
           Create your first group and invite up to 3 teammates. Each group can have up to 4 members.
         </p>
         <div className="mt-4">
-          <Button onClick={onOpenCreate}>Create Group</Button>
+          {canCreateGroup ? (
+            <Button onClick={onOpenCreate}>Create Group</Button>
+          ) : (
+            <p className="text-sm text-[var(--text-muted)]">You have already used your group creation slot.</p>
+          )}
         </div>
       </section>
     </div>
@@ -212,7 +189,10 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
     setEditErr("");
     setEditLoading(true);
     try {
-      const res = await updateGroup(group.id, { name: editName.trim(), subject: editSubject.trim() });
+      const res = await updateGroup(group.id, {
+        name: editName.trim(),
+        subject: editSubject.trim()
+      });
       onUpdate(res.data.data);
       setEditOpen(false);
     } catch (err) {
@@ -265,7 +245,6 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
       >
         <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-blue-400">Group</p>
         <h3 className="mt-1 text-2xl font-bold tracking-tight text-[var(--text-strong)]">{group.name}</h3>
-        <p className="mt-1 text-sm text-[var(--text-body)]">Subject: {group.subject}</p>
         <div className="mt-3 flex items-center justify-between text-xs text-blue-400">
           <span>{group.members.length}/4 Members</span>
           <span>{group.guide ? "Guide Assigned" : "Guide Not Assigned"}</span>
@@ -280,19 +259,20 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
             <div>
               <p className="text-xs font-medium uppercase tracking-[0.2em] text-blue-400">Group</p>
               <h3 className="mt-1 text-2xl font-bold tracking-tight text-[var(--text-strong)]">{group.name}</h3>
-              <p className="mt-1 text-sm text-[var(--text-body)]">Subject: {group.subject}</p>
             </div>
             {isOwner && (
               <button
-                onClick={() => { setEditName(group.name); setEditSubject(group.subject); setEditOpen(true); }}
+                onClick={() => {
+                  setEditName(group.name);
+                  setEditSubject(group.subject);
+                  setEditOpen(true);
+                }}
                 className="shrink-0 rounded-lg border border-[var(--border)] bg-[var(--bg-1)] px-3 py-1.5 text-xs font-medium text-[var(--text-body)] hover:bg-[var(--bg-2)] transition"
               >
                 Edit
               </button>
             )}
           </div>
-
-          <GuideStatusCard guide={group.guide} />
 
           <section className="rounded-lg border border-[var(--border)] bg-[var(--bg-1)]/80 p-4">
             <div className="mb-3 flex items-center justify-between">
@@ -453,6 +433,7 @@ function StudentGroupPage() {
   const [createErr, setCreateErr] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
   const [allGroupNames, setAllGroupNames] = useState<{ name: string; branch: string; division: string; subject?: string }[]>([]);
+  const creationLocked = user?.role === "student" && Boolean(user?.hasCreatedGroup || groups.length > 0);
   // Compute available group numbers for dropdown
   const branch = user?.branch || "";
   const division = user?.division || "";
@@ -501,11 +482,18 @@ function StudentGroupPage() {
 
   const handleCreateAnother = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (creationLocked) {
+      setCreateErr("You can create only one group.");
+      return;
+    }
     if (!newName.trim()) { setCreateErr("Group name is required."); return; }
     setCreateErr("");
     setCreateLoading(true);
     try {
-      const res = await createGroup({ name: newName.trim(), subject: newSubject });
+      const res = await createGroup({
+        name: newName.trim(),
+        subject: newSubject
+      });
       setGroups((prev) => [res.data.data, ...prev]);
       setNewName("");
       setShowCreate(false);
@@ -526,7 +514,12 @@ function StudentGroupPage() {
           invites={invites}
           onAccept={handleAccept}
           onDecline={handleDecline}
-          onOpenCreate={() => { setCreateErr(""); setShowCreate(true); }}
+          canCreateGroup={!creationLocked}
+          onOpenCreate={() => {
+            if (creationLocked) return;
+            setCreateErr("");
+            setShowCreate(true);
+          }}
         />
         <Modal open={showCreate} title="Create Group" onClose={() => setShowCreate(false)}>
           <form className="space-y-4" onSubmit={(e) => void handleCreateAnother(e)}>
@@ -561,7 +554,7 @@ function StudentGroupPage() {
             {createErr && <p className="text-sm text-rose-600">{createErr}</p>}
             <div className="flex justify-end gap-2">
               <Button variant="secondary" className="border-[var(--border)] bg-[var(--bg-1)] text-[var(--text-body)] hover:bg-[var(--bg-2)]" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
-              <Button type="submit" disabled={createLoading}>{createLoading ? "Creating..." : "Create Group"}</Button>
+              <Button type="submit" disabled={createLoading || creationLocked}>{createLoading ? "Creating..." : "Create Group"}</Button>
             </div>
           </form>
         </Modal>
@@ -577,7 +570,11 @@ function StudentGroupPage() {
           <h2 className="mt-1 text-3xl font-bold tracking-tight text-[var(--text-strong)]">My Groups</h2>
           <p className="mt-1 text-sm text-[var(--text-body)]">Manage your groups, invites, and team members.</p>
         </div>
-        <Button onClick={() => { setCreateErr(""); setShowCreate(true); }}>Create Group</Button>
+        {creationLocked ? (
+          <p className="text-sm text-[var(--text-muted)]">You have already created or joined a group.</p>
+        ) : (
+          <Button onClick={() => { setCreateErr(""); setShowCreate(true); }}>Create Group</Button>
+        )}
       </div>
       <div className="grid gap-5 lg:grid-cols-2">
         {groups.map((group) => (
@@ -633,15 +630,10 @@ function StudentGroupPage() {
           {(!branch || !division) && (
             <p className="text-sm text-rose-600 mt-2">Branch and division must be set in your profile to create a group.</p>
           )}
-          {/* Subject is fixed to EDI */}
-          <div className="mt-2">
-            <span className="block text-sm font-medium text-[var(--text-strong)]">Subject</span>
-            <span className="block text-base font-semibold text-[var(--primary)]">EDI</span>
-          </div>
           {createErr && <p className="text-sm text-rose-600">{createErr}</p>}
           <div className="flex justify-end gap-2">
             <Button variant="secondary" className="border-[var(--border)] bg-[var(--bg-1)] text-[var(--text-body)] hover:bg-[var(--bg-2)]" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
-            <Button type="submit" disabled={createLoading}>{createLoading ? "Creating..." : "Create Group"}</Button>
+            <Button type="submit" disabled={createLoading || creationLocked}>{createLoading ? "Creating..." : "Create Group"}</Button>
           </div>
         </form>
       </Modal>
@@ -682,6 +674,11 @@ function GuideGroupPage() {
             <article key={g.id} className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
               <h3 className="font-semibold text-[var(--text-strong)]">{g.name}</h3>
               <p className="mt-3 text-xs text-[var(--text-muted)]">Owner: {g.owner.name}</p>
+              {g.repositoryUrl ? (
+                <a href={g.repositoryUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block text-xs text-[var(--primary)] hover:underline">
+                  GitHub Repository
+                </a>
+              ) : null}
               <ul className="mt-3 space-y-1">
                 {g.members.map((m) => (
                   <li key={m.id} className="rounded-lg border border-[var(--border)] bg-[var(--bg-1)]/80 p-2 text-sm text-[var(--text-body)]">
@@ -754,7 +751,7 @@ function AdminGroupPage() {
 
       {groups.length === 0 ? (
         <div className="lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-10 text-center shadow-card">
-          <p className="text-[var(--text-muted)]">No groups have been created yet.</p>
+          <p className="text-[var(--text-muted)]">No EDI-registered groups available yet.</p>
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
@@ -766,16 +763,16 @@ function AdminGroupPage() {
                   <p className="mt-0.5 text-xs text-[var(--text-muted)]">
                     Owner: {g.owner.name} · {g.members.length}/4 members
                   </p>
+                  <p className="mt-1 text-xs text-[var(--text-muted)]">
+                    {g.ediGuide ? "Guide Assigned" : "Guide Not Assigned"}
+                  </p>
                 </div>
                 <button
-                  onClick={() => { setAssignTarget(g); setSelectedGuideId(g.guide?.id ?? ""); setAssignErr(""); }}
+                  onClick={() => { setAssignTarget(g); setSelectedGuideId(g.ediGuide?.id ?? ""); setAssignErr(""); }}
                   className="shrink-0 rounded-lg border border-[var(--primary)]/40 bg-[var(--primary)]/10 px-3 py-1.5 text-xs font-medium text-[var(--primary)] hover:bg-[var(--primary)]/20 transition"
                 >
-                  {g.guide ? "Change Guide" : "Assign Guide"}
+                  {g.ediGuide ? "Change Guide" : "Assign Guide"}
                 </button>
-              </div>
-              <div className="mt-3">
-                <GuideStatusCard guide={g.guide} />
               </div>
             </article>
           ))}
