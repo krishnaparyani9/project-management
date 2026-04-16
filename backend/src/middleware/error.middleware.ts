@@ -25,5 +25,11 @@ export const errorHandler = (
 		return;
 	}
 
-	res.status(500).json({ success: false, message: "Internal server error" });
+	// eslint-disable-next-line no-console
+	console.error("Internal Error:", error);
+
+	res.status(500).json({ 
+		success: false, 
+		message: error instanceof Error ? error.message : "Internal server error" 
+	});
 };

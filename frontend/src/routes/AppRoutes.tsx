@@ -11,11 +11,12 @@ import TasksPage from "../pages/TasksPage";
 import DashboardLayout from "../layouts/DashboardLayout";
 import ProtectedRoute from "./ProtectedRoute";
 import { useAuth } from "../hooks/useAuth";
+import AdminDashboard from "../pages/AdminDashboard";
 
 const DashboardHome = () => {
   const { user } = useAuth();
   if (user?.role === "guide") return <GuideDashboard />;
-  if (user?.role === "admin") return <Navigate to="/groups" replace />;
+  if (user?.role === "admin") return <AdminDashboard />;
   return <StudentDashboard />;
 };
 

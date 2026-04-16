@@ -1,14 +1,17 @@
 import bcrypt from "bcryptjs";
 import jwt, { type Secret, type SignOptions } from "jsonwebtoken";
 import { z } from "zod";
+import { OAuth2Client } from "google-auth-library";
 import { env } from "../config/env";
 import { UserModel } from "../models/user.model";
 import type { JwtPayload, UserRole } from "../types/auth.types";
 
+const googleClient = new OAuth2Client(env.googleClientId);
+
 const signupSchema = z.object({
 	name: z.string().min(2).max(80),
 	email: z.string().email(),
-	password: z.string().min(6).max(128),
+	password: z.string().min(6).max(128).optional(),
 	role: z.enum(["student", "guide", "admin"]),
 	branch: z.string().trim().optional(),
 	division: z.string().trim().optional(),
@@ -35,7 +38,7 @@ const loginSchema = z.object({
 interface SignupInput {
 	name: string;
 	email: string;
-	password: string;
+	password?: string;
 	role: UserRole;
 	branch?: string;
 	division?: string;
@@ -44,7 +47,7 @@ interface SignupInput {
 
 interface LoginInput {
 	email: string;
-	password: string;
+	password?: string;
 }
 
 interface AuthResult {
@@ -79,16 +82,7 @@ const createToken = (payload: JwtPayload): string => {
 	return jwt.sign(payload, secret, options);
 };
 
-const toAuthResult = (user: {
-	_id: string;
-	name: string;
-	email: string;
-	role: UserRole;
-	hasCreatedGroup?: boolean;
-	branch?: string;
-	division?: string;
-	rollNo?: string;
-}): AuthResult => {
+const toAuthResult = (user: any): AuthResult => {
 	const token = createToken({ userId: String(user._id), role: user.role });
 
 	return {
@@ -106,15 +100,26 @@ const toAuthResult = (user: {
 	};
 };
 
+const enforceVitDomain = (email: string) => {
+	if (!email.toLowerCase().endsWith("@vit.edu")) {
+		throw new AppError(403, "Only @vit.edu emails are allowed.");
+	}
+};
+
 export const registerUser = async (input: SignupInput): Promise<AuthResult> => {
 	const payload = signupSchema.parse(input);
+	enforceVitDomain(payload.email);
 
 	const existingUser = await UserModel.findOne({ email: payload.email.toLowerCase() });
 	if (existingUser) {
 		throw new AppError(409, "Email already registered");
 	}
 
-	const hashedPassword = await bcrypt.hash(payload.password, 10);
+	let hashedPassword = undefined;
+	if (payload.password) {
+		hashedPassword = await bcrypt.hash(payload.password, 10);
+	}
+
 	const user = await UserModel.create({
 		name: payload.name,
 		email: payload.email.toLowerCase(),
@@ -130,6 +135,9 @@ export const registerUser = async (input: SignupInput): Promise<AuthResult> => {
 };
 
 export const loginUser = async (input: LoginInput): Promise<AuthResult> => {
+	if (!input.password) {
+		throw new AppError(400, "Password is required for traditional login");
+	}
 	const payload = loginSchema.parse(input);
 
 	const user = await UserModel.findOne({ email: payload.email.toLowerCase() });
@@ -137,9 +145,43 @@ export const loginUser = async (input: LoginInput): Promise<AuthResult> => {
 		throw new AppError(401, "Invalid email or password");
 	}
 
+	if (!user.password) {
+		throw new AppError(401, "Account was created with Google. Use 'Sign in with Google' instead.");
+	}
+
 	const isPasswordValid = await bcrypt.compare(payload.password, user.password);
 	if (!isPasswordValid) {
 		throw new AppError(401, "Invalid email or password");
+	}
+
+	return toAuthResult(user);
+};
+
+export const googleAuthLogin = async (credential: string, role: UserRole): Promise<AuthResult> => {
+	const ticket = await googleClient.verifyIdToken({
+		idToken: credential,
+		audience: env.googleClientId,
+	});
+	
+	const payload = ticket.getPayload();
+	if (!payload || !payload.email) {
+		throw new AppError(400, "Invalid Google token");
+	}
+
+	const email = payload.email.toLowerCase();
+	enforceVitDomain(email);
+
+	let user = await UserModel.findOne({ email });
+	if (!user) {
+		// Auto-create user if they don't exist
+		user = await UserModel.create({
+			name: payload.name || email.split("@")[0],
+			email,
+			role,
+			hasCreatedGroup: false
+		});
+	} else if (user.role !== role) {
+		throw new AppError(403, `Account exists with a different role (${user.role})`);
 	}
 
 	return toAuthResult(user);

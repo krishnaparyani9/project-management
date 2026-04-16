@@ -6,6 +6,7 @@ import authRoutes from "./routes/auth.routes";
 import taskRoutes from "./routes/task.routes";
 import progressRoutes from "./routes/progress.routes";
 import groupRoutes from "./routes/group.routes";
+import subjectRoutes from "./routes/subject.routes";
 import { errorHandler } from "./middleware/error.middleware";
 
 const app = express();
@@ -27,6 +28,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/progress", progressRoutes);
 app.use("/api/groups", groupRoutes);
+app.use("/api/subjects", subjectRoutes);
 
 app.use(errorHandler);
 

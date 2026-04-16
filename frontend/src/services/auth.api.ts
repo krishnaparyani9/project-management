@@ -26,5 +26,6 @@ export interface AuthResponse {
 
 export const loginRequest = (payload: LoginPayload) => api.post<AuthResponse>("/auth/login", payload);
 export const registerRequest = (payload: RegisterPayload) => api.post<AuthResponse>("/auth/register", payload);
+export const googleLoginRequest = (payload: { credential: string; role: UserRole }) => api.post<AuthResponse>("/auth/google", payload);
 export const meRequest = () => api.get<AuthResponse>("/auth/me");
 export const logoutRequest = () => api.post<{ success: boolean; message: string }>("/auth/logout");

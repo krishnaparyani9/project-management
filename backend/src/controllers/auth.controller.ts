@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { env } from "../config/env";
-import { getUserById, loginUser, registerUser } from "../services/auth.service";
+import { getUserById, loginUser, registerUser, googleAuthLogin } from "../services/auth.service";
 import type { AuthenticatedRequest } from "../types/auth.types";
 
 const accessCookieName = "accessToken";
@@ -24,6 +24,17 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 	const result = await loginUser(req.body);
 	res.cookie(accessCookieName, result.token, cookieOptions);
 	res.status(200).json(new ApiResponse(true, "Login successful", { user: result.user }));
+});
+
+export const googleLogin = asyncHandler(async (req: Request, res: Response) => {
+	const { credential, role } = req.body;
+	if (!credential || !role) {
+		res.status(400).json(new ApiResponse(false, "Google credential and role are required", null));
+		return;
+	}
+	const result = await googleAuthLogin(credential, role);
+	res.cookie(accessCookieName, result.token, cookieOptions);
+	res.status(200).json(new ApiResponse(true, "Google login successful", { user: result.user }));
 });
 
 export const me = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
