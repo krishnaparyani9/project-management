@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { BookOpen, Plus, Trash2, Users } from "lucide-react";
+import { BookOpen, Plus, Trash2, Users, Sparkles } from "lucide-react";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import { fetchAllSubjects, createSubject, deleteSubject, type Subject } from "../services/subject.api";
@@ -72,18 +72,23 @@ const AdminDashboard = () => {
 
 	return (
 		<div className="space-y-6">
-			<header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-				<div>
-					<h2 className="text-2xl font-bold text-[var(--text-strong)]">Admin Dashboard</h2>
-					<p className="text-sm text-slate-400 mt-1">Manage course project subjects and view participating groups.</p>
+			<header className="reveal-up delay-1 glass-panel rounded-[28px] border border-[var(--border)] bg-[var(--card-bg)] p-6 shadow-card">
+				<div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+					<div>
+						<p className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-1)]/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--primary)]">
+							<Sparkles size={14} /> Admin overview
+						</p>
+						<h2 className="mt-3 text-3xl font-bold text-[var(--text-strong)]">Admin Dashboard</h2>
+						<p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">Manage course project subjects and review which groups are attached to each subject.</p>
+					</div>
+					<Button onClick={() => setIsAdding(!isAdding)} className="flex items-center gap-2">
+						<Plus size={16} /> {isAdding ? "Cancel" : "Add Subject"}
+					</Button>
 				</div>
-				<Button onClick={() => setIsAdding(!isAdding)} className="flex items-center gap-2">
-					<Plus size={16} /> {isAdding ? "Cancel" : "Add Subject"}
-				</Button>
 			</header>
 
 			{isAdding && (
-				<form onSubmit={handleAddSubject} className="reveal-down rounded-xl border border-[var(--border-base)] bg-[var(--bg-1)] p-5 shadow-card max-w-xl">
+				<form onSubmit={handleAddSubject} className="reveal-up delay-2 rounded-[28px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card max-w-xl">
 					<h3 className="text-lg font-bold text-[var(--text-strong)] mb-4">New Subject</h3>
 					<div className="space-y-4">
 						<Input 
@@ -95,16 +100,16 @@ const AdminDashboard = () => {
 							required 
 						/>
 						<div>
-                            <label htmlFor="desc" className="block text-sm font-medium text-[var(--text-body)] mb-1">Description</label>
-                            <textarea 
-                                id="desc"
-                                className="w-full rounded-lg border border-slate-700 bg-[var(--bg-0)] px-3 py-2 text-sm text-[var(--text-body)] shadow-sm outline-none ring-blue-400 transition focus:border-blue-400 focus:ring min-h-[80px]"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Optional description..."
-                            />
-                        </div>
-						{error && <p className="text-sm text-red-500">{error}</p>}
+							<label htmlFor="desc" className="mb-2 block text-sm font-medium text-[var(--text-body)]">Description</label>
+							<textarea 
+								id="desc"
+								className="min-h-[100px] w-full rounded-2xl border border-[var(--border)] bg-[var(--bg-1)]/80 px-4 py-3 text-sm text-[var(--text-body)] shadow-sm outline-none transition placeholder:text-[var(--text-muted)] hover:border-[color:var(--primary-light)]/50 focus:border-[var(--primary)] focus:ring-4 focus:ring-[color:var(--primary)]/12"
+								value={description}
+								onChange={(e) => setDescription(e.target.value)}
+								placeholder="Optional description..."
+							/>
+						</div>
+						{error && <p className="rounded-2xl border border-[var(--danger)]/35 bg-[var(--danger)]/10 px-4 py-3 text-sm text-[var(--danger)]">{error}</p>}
 						<Button type="submit" disabled={isLoading}>
 							{isLoading ? "Saving..." : "Save Subject"}
 						</Button>
@@ -114,7 +119,7 @@ const AdminDashboard = () => {
 
 			<div className="grid gap-4">
 				{subjects.length === 0 && !isAdding && (
-					<div className="text-center py-12 rounded-xl border border-dashed border-slate-700 text-slate-500">
+					<div className="text-center py-12 rounded-[28px] border border-dashed border-[var(--border)] bg-[var(--card-bg)] text-[var(--text-muted)] shadow-card">
 						<BookOpen size={32} className="mx-auto mb-3 opacity-50" />
 						<p>No subjects have been configured yet.</p>
 					</div>
@@ -127,26 +132,26 @@ const AdminDashboard = () => {
 					const isExpanded = activeSubjectId === subject.id;
 
 					return (
-						<div key={subject.id} className="rounded-xl border border-[var(--border)] bg-[var(--card-bg)] shadow-card overflow-hidden transition-all duration-300">
+						<div key={subject.id} className="rounded-[28px] border border-[var(--border)] bg-[var(--card-bg)] shadow-card overflow-hidden transition-all duration-300">
 							<div 
 								onClick={() => togglePreview(subject.id)}
-								className="p-5 flex justify-between items-center cursor-pointer hover:bg-[var(--bg-1)] transition-colors"
+								className="p-5 flex justify-between items-center cursor-pointer hover:bg-[var(--bg-1)]/70 transition-colors"
 							>
 								<div className="flex items-center gap-4">
-									<div className="bg-blue-500/10 p-3 rounded-lg text-blue-500">
+									<div className="bg-[var(--primary)]/10 p-3 rounded-2xl text-[var(--primary)]">
 										<BookOpen size={20} />
 									</div>
 									<div>
 										<h3 className="text-lg font-bold text-[var(--text-strong)]">{subject.name}</h3>
-										{subject.description && <p className="text-sm text-slate-400 line-clamp-1 mt-0.5">{subject.description}</p>}
+										{subject.description && <p className="mt-1 text-sm text-[var(--text-muted)] line-clamp-1">{subject.description}</p>}
 									</div>
 								</div>
 								<div className="flex items-center gap-4">
-									<div className="flex items-center gap-2 text-sm text-slate-400">
+									<div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
 										<Users size={16} />
 										<span className="font-medium">{subjectGroups.length} Groups</span>
 									</div>
-									<button onClick={(e) => handleDeleteSubject(subject.id, e)} className="p-2 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition">
+									<button onClick={(e) => handleDeleteSubject(subject.id, e)} className="rounded-2xl p-2 text-[var(--text-muted)] transition hover:bg-[var(--danger)]/10 hover:text-[var(--danger)]">
 										<Trash2 size={16} />
 									</button>
 								</div>
@@ -154,18 +159,18 @@ const AdminDashboard = () => {
 
 							{isExpanded && (
 								<div className="border-t border-[var(--border)] p-5 bg-[var(--bg-0)]/50">
-									<h4 className="text-xs uppercase tracking-wider text-slate-500 font-bold mb-4">Registered Groups</h4>
+									<h4 className="mb-4 text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Registered Groups</h4>
 									{subjectGroups.length === 0 ? (
-										<p className="text-sm text-slate-400 italic">No student groups are currently registered under this specific subject.</p>
+										<p className="text-sm italic text-[var(--text-muted)]">No student groups are currently registered under this specific subject.</p>
 									) : (
 										<div className="grid gap-3 md:grid-cols-2">
 											{subjectGroups.map(group => (
-												<div key={group.id} className="p-4 rounded-lg border border-[var(--border)] bg-[var(--bg-1)] flex justify-between items-start">
+												<div key={group.id} className="flex items-start justify-between rounded-2xl border border-[var(--border)] bg-[var(--bg-1)] p-4">
 													<div>
 														<p className="font-bold text-[var(--text-strong)]">{group.name}</p>
-														<p className="text-xs text-slate-400 mt-1">Owner: {group.owner?.name}</p>
+														<p className="mt-1 text-xs text-[var(--text-muted)]">Owner: {group.owner?.name}</p>
 													</div>
-													<span className="text-xs font-semibold px-2 py-1 bg-emerald-500/10 text-emerald-500 rounded">
+													<span className="rounded-full bg-[var(--ok)]/12 px-2 py-1 text-xs font-semibold text-[var(--ok)]">
 														{group.members?.length || 0} Members
 													</span>
 												</div>

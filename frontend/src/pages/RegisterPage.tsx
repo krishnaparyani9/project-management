@@ -109,10 +109,10 @@ const RegisterPage = () => {
   return (
     <AuthLayout>
       <h2 className="mb-1 text-[22px] font-semibold text-[var(--text-strong)] text-center">Create Account</h2>
-      <p className="mb-6 text-sm text-slate-400 text-center">Join using your vit.edu email address.</p>
+      <p className="mb-6 text-sm text-[var(--text-muted)] text-center">Join using your vit.edu email address.</p>
 
       {/* Tabs */}
-      <div className="flex bg-[var(--bg-1)] p-1 rounded-lg mb-6 border border-[var(--border-base)]">
+      <div className="flex bg-[var(--bg-1)] p-1 rounded-lg mb-6 border border-[var(--border)]">
         {(["admin", "guide", "student"] as UserRole[]).map((role) => (
           <button
             key={role}
@@ -120,8 +120,8 @@ const RegisterPage = () => {
             onClick={() => handleTabChange(role)}
             className={`flex-1 text-sm py-2 rounded-md font-medium transition-colors ${
               activeTab === role
-                ? "bg-blue-600 text-white shadow"
-                : "text-slate-400 hover:text-slate-200"
+                ? "bg-[var(--primary)] text-[#03101a] shadow"
+                : "text-[var(--text-muted)] hover:text-[var(--text-strong)]"
             }`}
           >
             {role === "guide" ? "Project Guide" : role.charAt(0).toUpperCase() + role.slice(1)}
@@ -141,9 +141,9 @@ const RegisterPage = () => {
       </div>
       
       <div className="flex items-center my-4">
-        <div className="flex-grow border-t border-[var(--border-base)]"></div>
-        <span className="mx-4 text-xs text-slate-500 uppercase">Or register with email</span>
-        <div className="flex-grow border-t border-[var(--border-base)]"></div>
+        <div className="flex-grow border-t border-[var(--border)]"></div>
+        <span className="mx-4 text-xs text-[var(--text-muted)] uppercase">Or register with email</span>
+        <div className="flex-grow border-t border-[var(--border)]"></div>
       </div>
 
       <form className="space-y-4" onSubmit={onSubmit}>
@@ -165,7 +165,7 @@ const RegisterPage = () => {
               <span className="mb-1 block text-sm font-medium text-[var(--text-body)]">Branch</span>
               <select
                 id="branch"
-                className="w-full rounded-lg border border-slate-700 bg-[var(--bg-0)] px-3 py-2 text-sm text-[var(--text-body)] shadow-sm outline-none ring-blue-400 transition focus:border-blue-400 focus:ring"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-0)] px-3 py-2 text-sm text-[var(--text-body)] shadow-sm outline-none ring-[var(--focus)] transition focus:border-[var(--focus)] focus:ring"
                 value={branch}
                 onChange={(e) => setBranch(e.target.value)}
                 required
@@ -178,7 +178,7 @@ const RegisterPage = () => {
               <span className="mb-1 block text-sm font-medium text-[var(--text-body)]">Division</span>
               <select
                 id="division"
-                className="w-full rounded-lg border border-slate-700 bg-[var(--bg-0)] px-3 py-2 text-sm text-[var(--text-body)] shadow-sm outline-none ring-blue-400 transition focus:border-blue-400 focus:ring"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-0)] px-3 py-2 text-sm text-[var(--text-body)] shadow-sm outline-none ring-[var(--focus)] transition focus:border-[var(--focus)] focus:ring"
                 value={division}
                 onChange={(e) => setDivision(e.target.value)}
                 required
@@ -194,14 +194,14 @@ const RegisterPage = () => {
           </>
         ) : null}
 
-        {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+        {error ? <p className="text-sm text-[var(--danger)]">{error}</p> : null}
 
         <Button className="w-full" type="submit" disabled={isLoading}>
           {isLoading ? "Creating account..." : "Register"}
         </Button>
 
-        <p className="text-center text-sm text-slate-400">
-          Already have an account? <Link className="font-semibold text-brand-700 hover:underline" to="/login">Sign in</Link>
+        <p className="text-center text-sm text-[var(--text-muted)]">
+          Already have an account? <Link className="font-semibold text-[var(--primary)] hover:underline" to="/login">Sign in</Link>
         </p>
       </form>
     </AuthLayout>

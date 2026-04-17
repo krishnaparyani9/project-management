@@ -9,6 +9,12 @@ export interface IProjectGroup {
 	owner: Types.ObjectId;
 	ediGuide?: Types.ObjectId;
 	cpGuide?: Types.ObjectId;
+	courseProjectRegistrations: {
+		subjectId: Types.ObjectId;
+		subjectName: string;
+		labFaculty?: Types.ObjectId | null;
+		registeredAt: Date;
+	}[];
 	members: Types.ObjectId[];
 	pendingInvites: Types.ObjectId[];
 	createdAt: Date;
@@ -24,6 +30,14 @@ const projectGroupSchema = new Schema<IProjectGroup>(
 		owner: { type: Schema.Types.ObjectId, ref: "User", required: true },
 		ediGuide: { type: Schema.Types.ObjectId, ref: "User", default: null },
 		cpGuide: { type: Schema.Types.ObjectId, ref: "User", default: null },
+		courseProjectRegistrations: [
+			{
+				subjectId: { type: Schema.Types.ObjectId, ref: "Subject", required: true },
+				subjectName: { type: String, required: true, trim: true },
+				labFaculty: { type: Schema.Types.ObjectId, ref: "User", default: null },
+				registeredAt: { type: Date, default: Date.now }
+			}
+		],
 		members: [{ type: Schema.Types.ObjectId, ref: "User" }],
 		pendingInvites: [{ type: Schema.Types.ObjectId, ref: "User" }]
 	},

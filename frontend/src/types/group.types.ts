@@ -18,6 +18,14 @@ export interface GuideUser {
   id: string;
   name: string;
   email: string;
+  teachingSubjectIds?: string[];
+}
+
+export interface CourseProjectRegistration {
+  subjectId: string;
+  subjectName: string;
+  labFaculty: GuideUser | null;
+  registeredAt: string | null;
 }
 
 export interface PendingInviteStudent {
@@ -35,6 +43,7 @@ export interface ProjectGroup {
   ediGuide: GuideUser | null;
   cpGuide: GuideUser | null;
   guide: GuideUser | null;
+  courseProjectRegistrations: CourseProjectRegistration[];
   owner: GroupOwner;
   members: GroupMember[];
   pendingInvites: PendingInviteStudent[];

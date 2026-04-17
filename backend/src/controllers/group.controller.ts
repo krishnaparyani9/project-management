@@ -15,6 +15,7 @@ export const getAllGroupNames = asyncHandler(async (_req: Request, res: Response
 import type { Response } from "express";
 import { Types } from "mongoose";
 import { ProjectGroupModel } from "../models/projectGroup.model";
+import { SubjectModel } from "../models/subject.model";
 import { UserModel } from "../models/user.model";
 import type { AuthenticatedRequest } from "../types/auth.types";
 import { ApiResponse } from "../utils/ApiResponse";
@@ -24,6 +25,8 @@ const POPULATE = [
 	{ path: "owner", select: "name email" },
 	{ path: "ediGuide", select: "name email" },
 	{ path: "cpGuide", select: "name email" },
+	{ path: "courseProjectRegistrations.subjectId", select: "name" },
+	{ path: "courseProjectRegistrations.labFaculty", select: "name email" },
 	{ path: "members", select: "name email role branch division rollNo" },
 	{ path: "pendingInvites", select: "name email" }
 ];
@@ -36,14 +39,25 @@ type PopUser = {
 	branch?: string;
 	division?: string;
 	rollNo?: string;
+	teachingSubjects?: unknown[];
 };
+const toTeachingSubjectIds = (subjects: unknown[] = []) =>
+	subjects
+		.map((subject) => {
+			if (typeof subject === "string") return subject;
+			if (subject && typeof subject === "object" && "_id" in subject) return String((subject as { _id?: unknown })._id ?? "");
+			return String(subject ?? "");
+		})
+		.filter(Boolean);
+
 const fu = (u: PopUser) => ({
 	id: String(u._id),
 	name: u.name,
 	email: u.email,
 	branch: u.branch,
 	division: u.division,
-	rollNo: u.rollNo
+	rollNo: u.rollNo,
+	teachingSubjectIds: toTeachingSubjectIds(u.teachingSubjects)
 });
 
 const normalizeRepositoryUrl = (value: string) => value.trim().replace(/\/+$/, "");
@@ -60,6 +74,21 @@ const formatGroup = (g: Record<string, unknown>) => ({
 	guide: g.ediGuide ? fu(g.ediGuide as PopUser) : null,
 	ediGuide: g.ediGuide ? fu(g.ediGuide as PopUser) : null,
 	cpGuide: g.cpGuide ? fu(g.cpGuide as PopUser) : null,
+	courseProjectRegistrations: ((g.courseProjectRegistrations as unknown[]) ?? []).map((entry) => {
+		const registration = entry as {
+			subjectId?: unknown;
+			subjectName?: unknown;
+			labFaculty?: PopUser | null;
+			registeredAt?: unknown;
+		};
+
+		return {
+			subjectId: String((registration.subjectId as { _id?: unknown } | undefined)?._id ?? registration.subjectId ?? ""),
+			subjectName: String(registration.subjectName ?? ""),
+			labFaculty: registration.labFaculty ? fu(registration.labFaculty) : null,
+			registeredAt: registration.registeredAt ? new Date(registration.registeredAt as string | number | Date).toISOString() : null
+		};
+	}),
 	members: (g.members as PopUser[]).map((m) => ({ ...fu(m), role: m.role ?? "student" })),
 	pendingInvites: (g.pendingInvites as PopUser[]).map(fu)
 });
@@ -103,6 +132,7 @@ export const createGroup = asyncHandler(async (req: AuthenticatedRequest, res: R
 		owner: new Types.ObjectId(ownerId),
 		ediGuide: null,
 		cpGuide: null,
+		courseProjectRegistrations: [],
 		members: [new Types.ObjectId(ownerId)],
 		pendingInvites: []
 	});
@@ -322,6 +352,103 @@ export const updateGroup = asyncHandler(async (req: AuthenticatedRequest, res: R
 	res.status(200).json(new ApiResponse(true, "Group updated", formatGroup(populated.toObject() as unknown as Record<string, unknown>)));
 });
 
+// ─── Student owner: register a subject for course project ───────────────────
+export const registerCourseProjectSubject = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+	const ownerId = req.user!.userId;
+	const { id } = req.params as { id: string };
+	const { subjectId } = req.body as { subjectId?: string };
+
+	if (!subjectId?.trim()) {
+		res.status(400).json(new ApiResponse(false, "Subject is required", null));
+		return;
+	}
+
+	if (!Types.ObjectId.isValid(subjectId)) {
+		res.status(400).json(new ApiResponse(false, "Invalid subject ID", null));
+		return;
+	}
+
+	const group = await ProjectGroupModel.findOne({ _id: id, owner: ownerId });
+	if (!group) {
+		res.status(404).json(new ApiResponse(false, "Group not found or unauthorized", null));
+		return;
+	}
+
+	group.courseProjectRegistrations = group.courseProjectRegistrations ?? [];
+
+	const subject = await SubjectModel.findById(subjectId).select("name");
+	if (!subject) {
+		res.status(404).json(new ApiResponse(false, "Subject not found", null));
+		return;
+	}
+
+	const existingRegistration = group.courseProjectRegistrations.find((entry) => String(entry.subjectId) === subjectId);
+	if (!existingRegistration) {
+		group.courseProjectRegistrations.push({
+			subjectId: new Types.ObjectId(subjectId),
+			subjectName: subject.name,
+			labFaculty: null,
+			registeredAt: new Date()
+		});
+		await group.save();
+	}
+
+	const populated = await group.populate(POPULATE);
+	res.status(200).json(new ApiResponse(true, "Subject registered for course project", formatGroup(populated.toObject() as unknown as Record<string, unknown>)));
+});
+
+// ─── Student owner: select lab faculty for a registered subject ────────────
+export const assignCourseProjectLabFaculty = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+	const ownerId = req.user!.userId;
+	const { id } = req.params as { id: string };
+	const { subjectId, facultyId } = req.body as { subjectId?: string; facultyId?: string | null };
+
+	if (!subjectId?.trim()) {
+		res.status(400).json(new ApiResponse(false, "Subject is required", null));
+		return;
+	}
+
+	if (!Types.ObjectId.isValid(subjectId)) {
+		res.status(400).json(new ApiResponse(false, "Invalid subject ID", null));
+		return;
+	}
+
+	const group = await ProjectGroupModel.findOne({ _id: id, owner: ownerId });
+	if (!group) {
+		res.status(404).json(new ApiResponse(false, "Group not found or unauthorized", null));
+		return;
+	}
+
+	group.courseProjectRegistrations = group.courseProjectRegistrations ?? [];
+
+	const registration = group.courseProjectRegistrations.find((entry) => String(entry.subjectId) === subjectId);
+	if (!registration) {
+		res.status(400).json(new ApiResponse(false, "Register the subject before choosing a lab faculty", null));
+		return;
+	}
+
+	if (facultyId) {
+		if (!Types.ObjectId.isValid(facultyId)) {
+			res.status(400).json(new ApiResponse(false, "Invalid faculty ID", null));
+			return;
+		}
+
+		const faculty = await UserModel.findOne({ _id: facultyId, role: "guide" });
+		if (!faculty) {
+			res.status(404).json(new ApiResponse(false, "Lab faculty not found", null));
+			return;
+		}
+
+		registration.labFaculty = new Types.ObjectId(facultyId);
+	} else {
+		registration.labFaculty = null;
+	}
+
+	await group.save();
+	const populated = await group.populate(POPULATE);
+	res.status(200).json(new ApiResponse(true, "Lab faculty updated", formatGroup(populated.toObject() as unknown as Record<string, unknown>)));
+});
+
 // ─── Student owner: register group for EDI guide assignment ─────────────────
 export const registerEdiGroup = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 	const ownerId = req.user!.userId;
@@ -453,7 +580,32 @@ export const getAllGroups = asyncHandler(async (_req: AuthenticatedRequest, res:
 
 // ─── Admin: list all guide users ─────────────────────────────────────────────
 export const getAllGuides = asyncHandler(async (_req: AuthenticatedRequest, res: Response) => {
-	const guides = await UserModel.find({ role: "guide" }).select("name email").lean();
-	res.status(200).json(new ApiResponse(true, "Guides fetched", guides.map((g) => ({ id: String(g._id), name: g.name, email: g.email }))));
+	const guides = await UserModel.find({ role: "guide" }).select("name email teachingSubjects").populate("teachingSubjects", "name description").lean();
+	res.status(200).json(new ApiResponse(true, "Guides fetched", guides.map((g) => fu(g as unknown as PopUser))));
+});
+
+// ─── Student / Guide / Admin: list guides for a subject ─────────────────────
+export const getGuidesBySubject = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+	const { subjectId } = req.params as { subjectId: string };
+
+	if (!Types.ObjectId.isValid(subjectId)) {
+		res.status(400).json(new ApiResponse(false, "Invalid subject ID", null));
+		return;
+	}
+
+	const subject = await SubjectModel.findById(subjectId).select("_id").lean();
+	if (!subject) {
+		res.status(404).json(new ApiResponse(false, "Subject not found", null));
+		return;
+	}
+
+	const guides = await UserModel.find({ role: "guide", teachingSubjects: subjectId })
+		.select("name email teachingSubjects")
+		.populate("teachingSubjects", "name description")
+		.lean();
+
+	res.status(200).json(
+		new ApiResponse(true, "Guides fetched", guides.map((g) => fu(g as unknown as PopUser)))
+	);
 });
 

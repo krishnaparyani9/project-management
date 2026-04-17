@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logout = exports.me = exports.login = exports.signup = void 0;
+exports.logout = exports.me = exports.googleLogin = exports.login = exports.signup = void 0;
 const ApiResponse_1 = require("../utils/ApiResponse");
 const asyncHandler_1 = require("../utils/asyncHandler");
 const env_1 = require("../config/env");
@@ -21,6 +21,16 @@ exports.login = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
     const result = await (0, auth_service_1.loginUser)(req.body);
     res.cookie(accessCookieName, result.token, cookieOptions);
     res.status(200).json(new ApiResponse_1.ApiResponse(true, "Login successful", { user: result.user }));
+});
+exports.googleLogin = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+    const { credential, role } = req.body;
+    if (!credential || !role) {
+        res.status(400).json(new ApiResponse_1.ApiResponse(false, "Google credential and role are required", null));
+        return;
+    }
+    const result = await (0, auth_service_1.googleAuthLogin)(credential, role);
+    res.cookie(accessCookieName, result.token, cookieOptions);
+    res.status(200).json(new ApiResponse_1.ApiResponse(true, "Google login successful", { user: result.user }));
 });
 exports.me = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
     const userId = req.user?.userId;

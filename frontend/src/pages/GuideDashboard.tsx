@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Modal from "../components/Modal";
-import { Users, User, ListTodo, Gauge } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Users, User, ListTodo, Gauge, Sparkles, ArrowRight } from "lucide-react";
 
 // Avatar component (copied from GroupPage)
 function Avatar({ name }: { name: string }) {
@@ -69,45 +70,56 @@ const GuideDashboard = () => {
   }
 
   if (error) {
-    return <div className="text-sm text-rose-600">{error}</div>;
+    return <div className="text-sm text-[var(--danger)]">{error}</div>;
   }
 
 
   return (
     <div className="space-y-8 md:space-y-10">
-      {/* Header Card */}
-      <section className="reveal-up delay-1 lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-6 shadow-card">
-        <p className="text-xs uppercase tracking-[0.2em] text-[var(--primary)] font-bold">Guide Command Center</p>
-        <h2 className="mt-2 text-3xl font-extrabold text-[var(--text-strong)]">Guide Dashboard</h2>
-        <p className="mt-3 max-w-3xl text-base text-[var(--text-muted)]">
+      <section className="reveal-up delay-1 glass-panel rounded-[28px] border border-[var(--border)] bg-[var(--card-bg)] p-6 shadow-card md:p-8">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-1)]/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--primary)]">
+              <Sparkles size={14} /> Guide command center
+            </p>
+            <h2 className="mt-3 text-3xl font-extrabold text-[var(--text-strong)] md:text-4xl">Guide Dashboard</h2>
+            <p className="mt-3 max-w-3xl text-base leading-6 text-[var(--text-muted)]">
           Monitor team health, review student progress, and track urgent delivery risks across all your groups.
-        </p>
+            </p>
+          </div>
+          <Link
+            to="/guide/subjects"
+            className="inline-flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--bg-1)]/80 px-4 py-3 text-sm font-semibold text-[var(--text-strong)] transition hover:border-[var(--primary)]/40 hover:text-[var(--primary)]"
+          >
+            Update subjects <ArrowRight size={16} />
+          </Link>
+        </div>
       </section>
 
       {/* Stats Cards */}
       <section className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="reveal-up delay-2 hover-glow lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card flex flex-col items-start">
+        <article className="reveal-up delay-2 hover-glow lit-card rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card flex flex-col items-start">
           <span className="mb-2 inline-flex items-center gap-2 text-[var(--primary)]"><Users size={20} /> GROUPS MENTORED</span>
           <span className="mt-1 text-3xl font-extrabold text-[var(--primary)]">{groups.length}</span>
         </article>
-        <article className="reveal-up delay-3 hover-glow lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card flex flex-col items-start">
+        <article className="reveal-up delay-3 hover-glow lit-card rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card flex flex-col items-start">
           <span className="mb-2 inline-flex items-center gap-2 text-[var(--accent)]"><User size={20} /> STUDENTS</span>
           <span className="mt-1 text-3xl font-extrabold text-[var(--accent)]">{totalStudents}</span>
         </article>
-        <article className="reveal-up delay-4 hover-glow lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card flex flex-col items-start">
-          <span className="mb-2 inline-flex items-center gap-2 text-amber-400"><ListTodo size={20} /> OPEN TASKS</span>
-          <span className="mt-1 text-3xl font-extrabold text-amber-400">{openTasks}</span>
+        <article className="reveal-up delay-4 hover-glow lit-card rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card flex flex-col items-start">
+          <span className="mb-2 inline-flex items-center gap-2 text-[var(--warn)]"><ListTodo size={20} /> OPEN TASKS</span>
+          <span className="mt-1 text-3xl font-extrabold text-[var(--warn)]">{openTasks}</span>
         </article>
-        <article className="reveal-up delay-5 hover-glow lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card flex flex-col items-start">
-          <span className="mb-2 inline-flex items-center gap-2 text-emerald-400"><Gauge size={20} /> AVERAGE PROGRESS</span>
-          <span className="mt-1 text-3xl font-extrabold text-emerald-400">{avgProgress}%</span>
+        <article className="reveal-up delay-5 hover-glow lit-card rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card flex flex-col items-start">
+          <span className="mb-2 inline-flex items-center gap-2 text-[var(--ok)]"><Gauge size={20} /> AVERAGE PROGRESS</span>
+          <span className="mt-1 text-3xl font-extrabold text-[var(--ok)]">{avgProgress}%</span>
         </article>
       </section>
 
       {/* Groups & Urgent Tasks */}
       <section className="grid gap-4 lg:grid-cols-[1.15fr_1fr]">
         {/* My Groups Card */}
-        <article className="reveal-up delay-3 hover-glow lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
+        <article className="reveal-up delay-3 hover-glow lit-card rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
           <h3 className="text-base font-semibold text-[var(--text-strong)]">My Groups</h3>
           <ul className="mt-4 space-y-3">
             {groups.map((group) => (
@@ -129,7 +141,7 @@ const GuideDashboard = () => {
               <div className="space-y-4">
                 <div>
                   <p className="text-base font-bold text-[var(--primary)]">Group Name: <span className="text-[var(--text-strong)]">{selectedGroup.name}</span></p>
-                  <p className="text-sm text-emerald-400">Guide: <span className="text-[var(--text-strong)]">{selectedGroup.ediGuide?.name ?? "Not assigned"}</span></p>
+                  <p className="text-sm text-[var(--ok)]">Guide: <span className="text-[var(--text-strong)]">{selectedGroup.ediGuide?.name ?? "Not assigned"}</span></p>
                   <p className="text-sm text-[var(--text-body)]">
                     GitHub Repo:{" "}
                     {selectedGroup.repositoryUrl ? (
@@ -170,7 +182,7 @@ const GuideDashboard = () => {
         </article>
 
         {/* Urgent Tasks Card */}
-        <article className="reveal-up delay-4 hover-glow lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
+        <article className="reveal-up delay-4 hover-glow lit-card rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
           <h3 className="text-base font-semibold text-[var(--text-strong)]">Urgent Tasks</h3>
           <ul className="mt-4 space-y-3">
             {urgentTasks.map((task) => (
@@ -178,7 +190,7 @@ const GuideDashboard = () => {
                 <p className="font-medium text-[var(--text-strong)]">{task.title}</p>
                 <p className="mt-1 text-xs text-[var(--text-muted)]">Group: {task.group?.name ?? "-"}</p>
                 <p className="text-xs text-[var(--text-muted)]">Assignee: {task.assignee?.name ?? "-"}</p>
-                <p className="mt-1 text-xs text-amber-400 font-medium">Due: {formatDate(task.dueDate)}</p>
+                <p className="mt-1 text-xs text-[var(--warn)] font-medium">Due: {formatDate(task.dueDate)}</p>
               </li>
             ))}
             {urgentTasks.length === 0 ? <li className="text-xs text-[var(--text-muted)]">No high-priority tasks right now.</li> : null}
@@ -187,7 +199,7 @@ const GuideDashboard = () => {
       </section>
 
       {/* Recent Student Updates Card */}
-      <section className="reveal-up delay-5 hover-glow lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
+      <section className="reveal-up delay-5 hover-glow lit-card rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
         <h3 className="text-base font-semibold text-[var(--text-strong)]">Recent Student Updates</h3>
         <ul className="mt-4 space-y-3">
           {latestUpdates.map((update) => (

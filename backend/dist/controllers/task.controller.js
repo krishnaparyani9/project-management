@@ -20,7 +20,7 @@ exports.getMyTasks = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
 });
 exports.getGuideTasks = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
     const userId = req.user?.userId;
-    const groups = await projectGroup_model_1.ProjectGroupModel.find({ guide: userId }).select("_id").lean();
+    const groups = await projectGroup_model_1.ProjectGroupModel.find({ ediGuide: userId }).select("_id").lean();
     const groupIds = groups.map((group) => group._id);
     const tasks = await task_model_1.TaskModel.find({ group: { $in: groupIds } })
         .populate("assignee", "name email")

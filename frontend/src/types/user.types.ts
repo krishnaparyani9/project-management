@@ -9,6 +9,7 @@ export interface User {
   branch?: string;
   division?: string;
   rollNo?: string;
+  teachingSubjectIds: string[];
 }
 
 export interface AuthState {

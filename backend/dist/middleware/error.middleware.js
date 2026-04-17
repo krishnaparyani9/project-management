@@ -19,6 +19,11 @@ const errorHandler = (error, _req, res, _next) => {
         res.status(error.statusCode).json({ success: false, message: error.message });
         return;
     }
-    res.status(500).json({ success: false, message: "Internal server error" });
+    // eslint-disable-next-line no-console
+    console.error("Internal Error:", error);
+    res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : "Internal server error"
+    });
 };
 exports.errorHandler = errorHandler;

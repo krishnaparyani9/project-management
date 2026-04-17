@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 import { env } from "../config/env";
-import { getUserById, loginUser, registerUser, googleAuthLogin } from "../services/auth.service";
+import { getUserById, loginUser, registerUser, googleAuthLogin, updateGuideSubjects } from "../services/auth.service";
 import type { AuthenticatedRequest } from "../types/auth.types";
 
 const accessCookieName = "accessToken";
@@ -41,6 +41,13 @@ export const me = asyncHandler(async (req: AuthenticatedRequest, res: Response) 
 	const userId = req.user?.userId;
 	const user = await getUserById(String(userId));
 	res.status(200).json(new ApiResponse(true, "Current user fetched", { user }));
+});
+
+export const updateProfile = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+	const userId = req.user?.userId;
+	const { teachingSubjectIds } = req.body as { teachingSubjectIds?: string[] };
+	const user = await updateGuideSubjects(String(userId), Array.isArray(teachingSubjectIds) ? teachingSubjectIds : []);
+	res.status(200).json(new ApiResponse(true, "Profile updated", { user: user.user }));
 });
 
 export const logout = asyncHandler(async (_req: Request, res: Response) => {

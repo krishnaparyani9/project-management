@@ -243,9 +243,9 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
         }}
         className="lit-card cursor-pointer rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-6 shadow-card transition hover:-translate-y-0.5 hover:border-[var(--primary)]/50"
       >
-        <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-blue-400">Group</p>
+        <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[var(--primary)]">Group</p>
         <h3 className="mt-1 text-2xl font-bold tracking-tight text-[var(--text-strong)]">{group.name}</h3>
-        <div className="mt-3 flex items-center justify-between text-xs text-blue-400">
+        <div className="mt-3 flex items-center justify-between text-xs text-[var(--primary)]">
           <span>{group.members.length}/4 Members</span>
           <span>{group.guide ? "Guide Assigned" : "Guide Not Assigned"}</span>
         </div>
@@ -253,11 +253,11 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
 
       <Modal open={showDetails} title={`Group Details - ${group.name}`} onClose={() => setShowDetails(false)}>
         <div className="space-y-4">
-          {actionErr && <p className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-600">{actionErr}</p>}
+          {actionErr && <p className="rounded-lg border border-[var(--danger)]/35 bg-[var(--danger)]/10 px-4 py-2 text-sm text-[var(--danger)]">{actionErr}</p>}
 
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-blue-400">Group</p>
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--primary)]">Group</p>
               <h3 className="mt-1 text-2xl font-bold tracking-tight text-[var(--text-strong)]">{group.name}</h3>
             </div>
             {isOwner && (
@@ -303,7 +303,7 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
                   {isOwner && member.id !== userId && (
                     <button
                       onClick={() => void handleRemoveMember(member.id)}
-                      className="text-xs text-rose-400 hover:text-rose-600 transition"
+                      className="text-xs text-[var(--danger)] hover:text-[var(--danger)]/80 transition"
                     >
                       Remove
                     </button>
@@ -332,7 +332,7 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
                 <p className="text-sm text-[var(--primary)]/80">Group is full (4/4 members).</p>
               )}
 
-              {inviteErr && <p className="mt-2 text-sm text-rose-400">{inviteErr}</p>}
+              {inviteErr && <p className="mt-2 text-sm text-[var(--danger)]">{inviteErr}</p>}
 
               {group.pendingInvites.length > 0 && (
                 <div className="mt-4">
@@ -348,7 +348,7 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
                         </div>
                         <button
                           onClick={() => void handleCancelInvite(s.id)}
-                          className="text-xs text-[var(--primary)]/80 hover:text-rose-400 transition"
+                          className="text-xs text-[var(--primary)]/80 hover:text-[var(--danger)] transition"
                         >
                           Cancel
                         </button>
@@ -364,14 +364,14 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
             {isOwner ? (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="rounded-lg border border-rose-400/30 bg-rose-500/10 px-4 py-2 text-sm font-medium text-rose-300 hover:bg-rose-500/20 transition"
+                className="rounded-lg border border-[var(--danger)]/35 bg-[var(--danger)]/10 px-4 py-2 text-sm font-medium text-[var(--danger)] hover:bg-[var(--danger)]/20 transition"
               >
                 Delete Group
               </button>
             ) : (
               <button
                 onClick={() => void handleLeave()}
-                className="rounded-lg border border-rose-400/30 bg-rose-500/10 px-4 py-2 text-sm font-medium text-rose-300 hover:bg-rose-500/20 transition"
+                className="rounded-lg border border-[var(--danger)]/35 bg-[var(--danger)]/10 px-4 py-2 text-sm font-medium text-[var(--danger)] hover:bg-[var(--danger)]/20 transition"
               >
                 Leave Group
               </button>
@@ -385,7 +385,7 @@ function MyGroupView({ group, userId, onUpdate, onLeft, onDeleted }: {
         <form className="space-y-4" onSubmit={(e) => void handleEdit(e)}>
           <Input id="e-name" label="Group Name" value={editName} onChange={(e) => setEditName(e.target.value)} required />
           <Input id="e-subject" label="Subject" value={editSubject} onChange={(e) => setEditSubject(e.target.value)} required />
-          {editErr && <p className="text-sm text-rose-600">{editErr}</p>}
+          {editErr && <p className="text-sm text-[var(--danger)]">{editErr}</p>}
           <div className="flex justify-end gap-2">
             <Button variant="secondary" className="border-[var(--border)] bg-[var(--bg-1)] text-[var(--text-body)] hover:bg-[var(--bg-2)]" type="button" onClick={() => setEditOpen(false)}>Cancel</Button>
             <Button type="submit" disabled={editLoading}>{editLoading ? "Saving..." : "Save"}</Button>
@@ -505,7 +505,7 @@ function StudentGroupPage() {
   };
 
   if (isLoading) return <p className="text-sm text-[var(--text-muted)]">Loading...</p>;
-  if (error) return <p className="text-sm text-rose-600">{error}</p>;
+  if (error) return <p className="text-sm text-[var(--danger)]">{error}</p>;
 
   if (groups.length === 0) {
     return (
@@ -525,16 +525,16 @@ function StudentGroupPage() {
           <form className="space-y-4" onSubmit={(e) => void handleCreateAnother(e)}>
             {/* Show branch and division info above the group name dropdown */}
             <div className="mb-2">
-              <span className="block text-xs text-blue-400">Branch:</span>
-              <span className="block text-sm font-semibold text-[var(--text-strong)]">{branch || <span className="text-rose-400">Not set</span>}</span>
-              <span className="block text-xs text-blue-400 mt-1">Division:</span>
-              <span className="block text-sm font-semibold text-[var(--text-strong)]">{division || <span className="text-rose-400">Not set</span>}</span>
+              <span className="block text-xs text-[var(--text-muted)]">Branch:</span>
+              <span className="block text-sm font-semibold text-[var(--text-strong)]">{branch || <span className="text-[var(--danger)]">Not set</span>}</span>
+              <span className="block text-xs text-[var(--text-muted)] mt-1">Division:</span>
+              <span className="block text-sm font-semibold text-[var(--text-strong)]">{division || <span className="text-[var(--danger)]">Not set</span>}</span>
             </div>
             <label htmlFor="cg-name-empty" className="block">
               <span className="mb-1 block text-sm font-medium text-[var(--text-strong)]">Group Name</span>
               <select
                 id="cg-name-empty"
-                className="w-full rounded-lg border border-blue-400/30 bg-[var(--bg-0)] px-3 py-2 text-sm text-[var(--text-body)] shadow-sm outline-none ring-blue-400 transition focus:border-blue-400 focus:ring"
+                className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-0)] px-3 py-2 text-sm text-[var(--text-body)] shadow-sm outline-none ring-[var(--focus)] transition focus:border-[var(--focus)] focus:ring"
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
                 required
@@ -549,9 +549,9 @@ function StudentGroupPage() {
             {/* Subject is fixed to EDI */}
             <div className="mt-2">
               <span className="block text-sm font-medium text-[var(--text-strong)]">Subject</span>
-              <span className="block text-base font-semibold text-blue-500">EDI</span>
+              <span className="block text-base font-semibold text-[var(--primary)]">EDI</span>
             </div>
-            {createErr && <p className="text-sm text-rose-600">{createErr}</p>}
+            {createErr && <p className="text-sm text-[var(--danger)]">{createErr}</p>}
             <div className="flex justify-end gap-2">
               <Button variant="secondary" className="border-[var(--border)] bg-[var(--bg-1)] text-[var(--text-body)] hover:bg-[var(--bg-2)]" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
               <Button type="submit" disabled={createLoading || creationLocked}>{createLoading ? "Creating..." : "Create Group"}</Button>
@@ -566,7 +566,7 @@ function StudentGroupPage() {
     <div className="mx-auto max-w-6xl space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-blue-400">Your Groups</p>
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--primary)]">Your Groups</p>
           <h2 className="mt-1 text-3xl font-bold tracking-tight text-[var(--text-strong)]">My Groups</h2>
           <p className="mt-1 text-sm text-[var(--text-body)]">Manage your groups, invites, and team members.</p>
         </div>
@@ -594,9 +594,9 @@ function StudentGroupPage() {
           {/* Show branch and division info above the group name dropdown */}
           <div className="mb-2">
             <span className="block text-xs text-[var(--text-muted)]">Branch:</span>
-            <span className="block text-sm font-semibold text-[var(--text-strong)]">{branch || <span className="text-rose-400">Not set</span>}</span>
+            <span className="block text-sm font-semibold text-[var(--text-strong)]">{branch || <span className="text-[var(--danger)]">Not set</span>}</span>
             <span className="block text-xs text-[var(--text-muted)] mt-1">Division:</span>
-            <span className="block text-sm font-semibold text-[var(--text-strong)]">{division || <span className="text-rose-400">Not set</span>}</span>
+            <span className="block text-sm font-semibold text-[var(--text-strong)]">{division || <span className="text-[var(--danger)]">Not set</span>}</span>
           </div>
           <label htmlFor="cg-name" className="block">
             <span className="mb-1 block text-sm font-medium text-[var(--text-strong)]">Group Name</span>
@@ -628,9 +628,9 @@ function StudentGroupPage() {
           </label>
           {/* Fallback/error if branch or division is missing */}
           {(!branch || !division) && (
-            <p className="text-sm text-rose-600 mt-2">Branch and division must be set in your profile to create a group.</p>
+            <p className="text-sm text-[var(--danger)] mt-2">Branch and division must be set in your profile to create a group.</p>
           )}
-          {createErr && <p className="text-sm text-rose-600">{createErr}</p>}
+          {createErr && <p className="text-sm text-[var(--danger)]">{createErr}</p>}
           <div className="flex justify-end gap-2">
             <Button variant="secondary" className="border-[var(--border)] bg-[var(--bg-1)] text-[var(--text-body)] hover:bg-[var(--bg-2)]" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
             <Button type="submit" disabled={createLoading || creationLocked}>{createLoading ? "Creating..." : "Create Group"}</Button>
@@ -656,7 +656,7 @@ function GuideGroupPage() {
   }, []);
 
   if (isLoading) return <p className="text-sm text-[var(--text-muted)]">Loading your groups...</p>;
-  if (error) return <p className="text-sm text-rose-600">{error}</p>;
+  if (error) return <p className="text-sm text-[var(--danger)]">{error}</p>;
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
@@ -739,7 +739,7 @@ function AdminGroupPage() {
   };
 
   if (isLoading) return <p className="text-sm text-[var(--text-muted)]">Loading all groups...</p>;
-  if (error) return <p className="text-sm text-rose-600">{error}</p>;
+  if (error) return <p className="text-sm text-[var(--danger)]">{error}</p>;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -798,7 +798,7 @@ function AdminGroupPage() {
               ))}
             </select>
           </label>
-          {assignErr && <p className="text-sm text-rose-600">{assignErr}</p>}
+          {assignErr && <p className="text-sm text-[var(--danger)]">{assignErr}</p>}
           <div className="flex justify-end gap-2">
             <Button variant="secondary" className="border-[var(--border)] bg-[var(--bg-1)] text-[var(--text-body)] hover:bg-[var(--bg-2)]" type="button" onClick={() => setAssignTarget(null)}>Cancel</Button>
             <Button type="submit" disabled={assigning}>{assigning ? "Saving..." : "Confirm"}</Button>

@@ -70,14 +70,14 @@ const EdiMajorProjectPage = () => {
   }
 
   if (error) {
-    return <p className="text-sm text-rose-600">{error}</p>;
+    return <p className="text-sm text-[var(--danger)]">{error}</p>;
   }
 
   if (!group) {
     return (
       <div className="space-y-6">
         <section className="lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-6 shadow-card">
-          <p className="text-xs uppercase tracking-[0.2em] text-blue-500 font-medium">Major Project</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-[var(--primary)] font-medium">Major Project</p>
           <h2 className="mt-2 text-3xl font-bold text-[var(--text-strong)]">EDI</h2>
           <p className="mt-3 text-sm text-[var(--text-muted)]">Create or join a group first. Then you can register it for EDI and request guide assignment.</p>
           <div className="mt-5">
@@ -91,7 +91,7 @@ const EdiMajorProjectPage = () => {
   return (
     <div className="space-y-6">
       <section className="reveal-up delay-1 lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-6 shadow-card">
-        <p className="text-xs uppercase tracking-[0.2em] text-blue-500 font-medium">Major Project</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-[var(--primary)] font-medium">Major Project</p>
         <h2 className="mt-2 text-3xl font-bold text-[var(--text-strong)]">EDI</h2>
         <p className="mt-3 max-w-3xl text-sm text-[var(--text-muted)] md:text-base">
           Complete EDI registration first, then wait for guide assignment. Task work starts after the guide is assigned.
@@ -106,14 +106,14 @@ const EdiMajorProjectPage = () => {
             <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-1)]/70 p-3">
               <p className="text-xs text-[var(--text-muted)]">Step 1</p>
               <p className="mt-1 text-sm font-medium text-[var(--text-strong)]">EDI Registration</p>
-              <p className={`mt-1 text-sm ${isRegistered ? "text-emerald-400" : "text-amber-300"}`}>
+              <p className={`mt-1 text-sm ${isRegistered ? "text-[var(--ok)]" : "text-[var(--warn)]"}`}>
                 {isRegistered ? "Registered" : "Pending"}
               </p>
             </div>
             <div className="rounded-lg border border-[var(--border)] bg-[var(--bg-1)]/70 p-3">
               <p className="text-xs text-[var(--text-muted)]">Step 2</p>
               <p className="mt-1 text-sm font-medium text-[var(--text-strong)]">Guide Assignment</p>
-              <p className={`mt-1 text-sm ${hasAssignedGuide ? "text-emerald-400" : "text-[var(--text-muted)]"}`}>
+              <p className={`mt-1 text-sm ${hasAssignedGuide ? "text-[var(--ok)]" : "text-[var(--text-muted)]"}`}>
                 {guideStatusLabel}
               </p>
             </div>
@@ -124,7 +124,7 @@ const EdiMajorProjectPage = () => {
           <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Guide Block</p>
           <h3 className="mt-2 text-base font-semibold text-[var(--text-strong)]">Assigned Guide</h3>
           {hasAssignedGuide ? (
-            <div className="mt-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3">
+            <div className="mt-3 rounded-lg border border-[var(--ok)]/35 bg-[var(--ok)]/10 p-3">
               <p className="text-sm font-semibold text-[var(--text-strong)]">{group.ediGuide?.name}</p>
               <p className="text-xs text-[var(--text-muted)]">{group.ediGuide?.email}</p>
             </div>
@@ -136,12 +136,12 @@ const EdiMajorProjectPage = () => {
 
       <section className="rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
         <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Actions Block</p>
-        {registerError && <p className="mt-3 text-sm text-rose-600">{registerError}</p>}
+        {registerError && <p className="mt-3 text-sm text-[var(--danger)]">{registerError}</p>}
         <div className="mt-4 flex flex-wrap gap-3">
           {!isRegistered ? (
             <Button onClick={() => setShowConfirm(true)}>Register Your Group</Button>
           ) : (
-            <span className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm font-medium text-emerald-300">
+            <span className="rounded-lg border border-[var(--ok)]/35 bg-[var(--ok)]/10 px-3 py-2 text-sm font-medium text-[var(--ok)]">
               Group is registered for EDI
             </span>
           )}
@@ -159,7 +159,7 @@ const EdiMajorProjectPage = () => {
             Register group <span className="font-semibold text-[var(--text-strong)]">{group.name}</span> for EDI now?
             After registration, admin can assign a guide for this group.
           </p>
-          {registerError && <p className="text-sm text-rose-600">{registerError}</p>}
+          {registerError && <p className="text-sm text-[var(--danger)]">{registerError}</p>}
           <div className="flex justify-end gap-2">
             <Button variant="secondary" type="button" onClick={() => setShowConfirm(false)} disabled={isRegistering}>Cancel</Button>
             <Button type="button" onClick={() => void registerGroupForEdi()} disabled={isRegistering}>

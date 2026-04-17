@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
+import { BadgeCheck, GraduationCap, ShieldCheck, Users2 } from "lucide-react";
 import AuthLayout from "../layouts/AuthLayout";
 import Input from "../components/Input";
 import Button from "../components/Button";
@@ -84,45 +85,39 @@ const LoginPage = () => {
 
   return (
     <AuthLayout>
-      <h2 className="mb-1 text-[22px] font-semibold text-[var(--text-strong)] text-center">Login</h2>
-      <p className="mb-6 text-sm text-slate-400 text-center">Access your academic project portal.</p>
+      <div className="text-center">
+        <span className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-1)]/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--primary)]">
+          <BadgeCheck size={14} /> Secure access
+        </span>
+        <h2 className="mt-3 text-[2rem] font-bold leading-tight text-[var(--text-strong)]">Sign in to your workspace</h2>
+        <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">Choose your role, authenticate, and jump into the right dashboard.</p>
+      </div>
 
-      {/* Tabs */}
-      <div className="flex bg-[var(--bg-1)] p-1 rounded-lg mb-6 border border-[var(--border-base)]">
+      <div className="mt-5 grid grid-cols-3 gap-2 rounded-2xl border border-[var(--border)] bg-[var(--bg-1)]/70 p-2 shadow-soft">
         {(["admin", "guide", "student"] as UserRole[]).map((role) => (
           <button
             key={role}
             type="button"
             onClick={() => handleTabChange(role)}
-            className={`flex-1 text-sm py-2 rounded-md font-medium transition-colors ${
+            className={`flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all ${
               activeTab === role
-                ? "bg-blue-600 text-white shadow"
-                : "text-slate-400 hover:text-slate-200"
+                ? "bg-[var(--primary)] text-white shadow-card"
+                : "text-[var(--text-muted)] hover:bg-[var(--bg-2)] hover:text-[var(--text-strong)]"
             }`}
           >
+            {role === "admin" ? <ShieldCheck size={14} /> : role === "guide" ? <GraduationCap size={14} /> : <Users2 size={14} />}
             {role === "guide" ? "Project Guide" : role.charAt(0).toUpperCase() + role.slice(1)}
           </button>
         ))}
       </div>
 
-      <div className="mb-6 flex flex-col items-center justify-center">
-        <GoogleLogin
-          onSuccess={onGoogleSuccess}
-          onError={() => setError("Google login failed")}
-          useOneTap={false}
-          theme="filled_black"
-          shape="rectangular"
-          text="signin_with"
-        />
-      </div>
-      
-      <div className="flex items-center my-4">
-        <div className="flex-grow border-t border-[var(--border-base)]"></div>
-        <span className="mx-4 text-xs text-slate-500 uppercase">Or sign in with email</span>
-        <div className="flex-grow border-t border-[var(--border-base)]"></div>
+      <div className="my-4 flex items-center">
+        <div className="flex-grow border-t border-[var(--border)]"></div>
+        <span className="mx-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">Or sign in with email</span>
+        <div className="flex-grow border-t border-[var(--border)]"></div>
       </div>
 
-      <form className="space-y-4" onSubmit={onSubmit}>
+      <form className="space-y-3.5" onSubmit={onSubmit}>
         <Input id="email" label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         <Input
           id="password"
@@ -133,16 +128,34 @@ const LoginPage = () => {
           required
         />
 
-        {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+        {error ? <p className="rounded-2xl border border-[var(--danger)]/35 bg-[var(--danger)]/10 px-4 py-3 text-sm text-[var(--danger)]">{error}</p> : null}
 
-        <Button className="w-full" type="submit" disabled={isLoading}>
+        <Button className="w-full text-base" type="submit" disabled={isLoading}>
           {isLoading ? "Signing in..." : "Sign In"}
         </Button>
 
-        <p className="text-center text-sm text-slate-400">
-          New here? <Link className="font-semibold text-brand-700 hover:underline" to="/signup">Create an account</Link>
+        <p className="text-center text-sm text-[var(--text-muted)]">
+          New here? <Link className="font-semibold text-[var(--primary)] hover:underline" to="/signup">Create an account</Link>
         </p>
       </form>
+
+      <div className="my-4 flex items-center">
+        <div className="flex-grow border-t border-[var(--border)]"></div>
+        <span className="mx-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">Or continue with Google</span>
+        <div className="flex-grow border-t border-[var(--border)]"></div>
+      </div>
+
+      <div className="flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-[var(--border)] bg-[var(--bg-1)]/60 p-3.5 shadow-soft">
+        <GoogleLogin
+          onSuccess={onGoogleSuccess}
+          onError={() => setError("Google login failed")}
+          useOneTap={false}
+          theme="filled_black"
+          shape="rectangular"
+          text="signin_with"
+        />
+        <p className="text-xs text-[var(--text-muted)]">Use Google if your account is already approved.</p>
+      </div>
     </AuthLayout>
   );
 };

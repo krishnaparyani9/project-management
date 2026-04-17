@@ -2,10 +2,12 @@ import http from "node:http";
 import app from "./app";
 import { connectDB } from "./config/db";
 import { env } from "./config/env";
+import { ensurePortIsFreeForDev } from "./utils/portRecovery";
 
 const startServer = async (): Promise<void> => {
 	try {
 		await connectDB();
+		await ensurePortIsFreeForDev(env.port, env.autoFreePort && env.nodeEnv !== "production");
 		const server = http.createServer(app);
 
 		server.on("error", (error: NodeJS.ErrnoException) => {

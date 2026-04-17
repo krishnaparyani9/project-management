@@ -3,9 +3,10 @@ import {
 	createGroup, getMyGroup, getMyInvites,
 	inviteStudent, respondToInvite, cancelInvite,
 	removeMember, leaveGroup, updateGroup, deleteGroup,
+	registerCourseProjectSubject, assignCourseProjectLabFaculty,
 	registerEdiGroup,
 	getGuideGroups,
-	assignGuide, assignCpGuide, getAllGroups, getAllGuides,
+	assignGuide, assignCpGuide, getAllGroups, getAllGuides, getGuidesBySubject,
 	getAllGroupNames
 } from "../controllers/group.controller";
 import { authenticate } from "../middleware/auth.middleware";
@@ -19,7 +20,8 @@ router.get("/invites",     authenticate, authorizeRoles("student"), getMyInvites
 router.get("/guide",       authenticate, authorizeRoles("guide"),   getGuideGroups);
 router.get("/all",         authenticate, authorizeRoles("admin"),   getAllGroups);
 router.get("/all-public",  authenticate, authorizeRoles("student", "guide", "admin"), getAllGroupNames);
-router.get("/guides-list", authenticate, authorizeRoles("admin"),   getAllGuides);
+router.get("/guides-list", authenticate, authorizeRoles("student", "guide", "admin"), getAllGuides);
+router.get("/guides-by-subject/:subjectId", authenticate, authorizeRoles("student", "guide", "admin"), getGuidesBySubject);
 
 // Student: create group
 router.post("/", authenticate, authorizeRoles("student"), createGroup);
@@ -28,6 +30,8 @@ router.post("/", authenticate, authorizeRoles("student"), createGroup);
 router.patch("/:id",                        authenticate, authorizeRoles("student"), updateGroup);
 router.delete("/:id",                       authenticate, authorizeRoles("student"), deleteGroup);
 router.delete("/:id/leave",                 authenticate, authorizeRoles("student"), leaveGroup);
+router.post("/:id/register-course-project", authenticate, authorizeRoles("student"), registerCourseProjectSubject);
+router.post("/:id/course-project-lab-faculty", authenticate, authorizeRoles("student"), assignCourseProjectLabFaculty);
 router.post("/:id/register-edi",           authenticate, authorizeRoles("student"), registerEdiGroup);
 router.post("/:id/invites",                 authenticate, authorizeRoles("student"), inviteStudent);
 router.post("/:id/invites/respond",         authenticate, authorizeRoles("student"), respondToInvite);

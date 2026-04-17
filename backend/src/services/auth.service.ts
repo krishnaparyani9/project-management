@@ -2,7 +2,9 @@ import bcrypt from "bcryptjs";
 import jwt, { type Secret, type SignOptions } from "jsonwebtoken";
 import { z } from "zod";
 import { OAuth2Client } from "google-auth-library";
+import { Types } from "mongoose";
 import { env } from "../config/env";
+import { SubjectModel } from "../models/subject.model";
 import { UserModel } from "../models/user.model";
 import type { JwtPayload, UserRole } from "../types/auth.types";
 
@@ -61,6 +63,7 @@ interface AuthResult {
 		branch?: string;
 		division?: string;
 		rollNo?: string;
+		teachingSubjectIds: string[];
 	};
 }
 
@@ -82,6 +85,52 @@ const createToken = (payload: JwtPayload): string => {
 	return jwt.sign(payload, secret, options);
 };
 
+const toTeachingSubjectIds = (subjects: unknown): string[] => {
+	if (!Array.isArray(subjects)) return [];
+	return subjects
+		.map((subject) => {
+			if (typeof subject === "string") return subject;
+			if (subject && typeof subject === "object" && "_id" in subject) return String((subject as { _id?: unknown })._id ?? "");
+			return String(subject ?? "");
+		})
+		.filter(Boolean);
+};
+
+const assertValidSubjectIds = async (subjectIds: string[]) => {
+	const uniqueIds = [...new Set(subjectIds.map((subjectId) => subjectId.trim()).filter(Boolean))];
+	for (const subjectId of uniqueIds) {
+		if (!Types.ObjectId.isValid(subjectId)) {
+			throw new AppError(400, "Invalid subject ID");
+		}
+	}
+
+	if (uniqueIds.length === 0) return uniqueIds;
+
+	const existingSubjects = await SubjectModel.find({ _id: { $in: uniqueIds } }).select("_id").lean();
+	if (existingSubjects.length !== uniqueIds.length) {
+		throw new AppError(404, "One or more selected subjects were not found");
+	}
+
+	return uniqueIds;
+};
+
+export const updateGuideSubjects = async (userId: string, subjectIds: string[]): Promise<AuthResult> => {
+	const user = await UserModel.findById(userId);
+	if (!user) {
+		throw new AppError(404, "User not found");
+	}
+
+	if (user.role !== "guide") {
+		throw new AppError(403, "Only guides can update teaching subjects");
+	}
+
+	const validSubjectIds = await assertValidSubjectIds(subjectIds);
+	user.teachingSubjects = validSubjectIds.map((subjectId) => new Types.ObjectId(subjectId));
+	await user.save();
+
+	return toAuthResult(user);
+};
+
 const toAuthResult = (user: any): AuthResult => {
 	const token = createToken({ userId: String(user._id), role: user.role });
 
@@ -95,7 +144,8 @@ const toAuthResult = (user: any): AuthResult => {
 			hasCreatedGroup: user.hasCreatedGroup ?? false,
 			branch: user.branch,
 			division: user.division,
-			rollNo: user.rollNo
+			rollNo: user.rollNo,
+			teachingSubjectIds: toTeachingSubjectIds(user.teachingSubjects)
 		}
 	};
 };
@@ -128,7 +178,8 @@ export const registerUser = async (input: SignupInput): Promise<AuthResult> => {
 		hasCreatedGroup: false,
 		branch: payload.role === "student" ? payload.branch?.trim() : undefined,
 		division: payload.role === "student" ? payload.division?.trim() : undefined,
-		rollNo: payload.role === "student" ? payload.rollNo?.trim() : undefined
+		rollNo: payload.role === "student" ? payload.rollNo?.trim() : undefined,
+		teachingSubjects: []
 	});
 
 	return toAuthResult(user);
@@ -178,7 +229,8 @@ export const googleAuthLogin = async (credential: string, role: UserRole): Promi
 			name: payload.name || email.split("@")[0],
 			email,
 			role,
-			hasCreatedGroup: false
+			hasCreatedGroup: false,
+			teachingSubjects: []
 		});
 	} else if (user.role !== role) {
 		throw new AppError(403, `Account exists with a different role (${user.role})`);
@@ -202,7 +254,8 @@ export const getUserById = async (userId: string) => {
 		hasCreatedGroup: user.hasCreatedGroup ?? false,
 		branch: user.branch,
 		division: user.division,
-		rollNo: user.rollNo
+		rollNo: user.rollNo,
+		teachingSubjectIds: toTeachingSubjectIds(user.teachingSubjects)
 	};
 };
 

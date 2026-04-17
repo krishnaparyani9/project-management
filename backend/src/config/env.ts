@@ -5,6 +5,8 @@ dotenv.config();
 
 const envSchema = z.object({
 	PORT: z.string().default("5000"),
+	NODE_ENV: z.string().default("development"),
+	AUTO_FREE_PORT: z.enum(["true", "false"]).default("true"),
 	MONGODB_URI: z.string().min(1, "MONGODB_URI is required"),
 	JWT_SECRET: z.string().min(8, "JWT_SECRET must be at least 8 chars"),
 	JWT_EXPIRES_IN: z.string().default("7d"),
@@ -21,6 +23,8 @@ if (!parsed.success) {
 
 export const env = {
 	port: Number(parsed.data.PORT),
+	nodeEnv: parsed.data.NODE_ENV,
+	autoFreePort: parsed.data.AUTO_FREE_PORT === "true",
 	mongoUri: parsed.data.MONGODB_URI,
 	jwtSecret: parsed.data.JWT_SECRET,
 	jwtExpiresIn: parsed.data.JWT_EXPIRES_IN,

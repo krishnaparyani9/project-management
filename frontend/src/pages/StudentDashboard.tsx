@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { BookOpen, ClipboardList, Sparkles } from "lucide-react";
 import { fetchMyGroup } from "../services/group.api";
 import { fetchMyProgressUpdates } from "../services/progress.api";
 import { fetchMyTasks } from "../services/task.api";
@@ -87,10 +88,10 @@ const StudentDashboard = () => {
   );
 
   const quickStats = [
-    { label: "Active Tasks", value: String(activeTasksCount), tone: "text-blue-600" },
-    { label: "Due This Week", value: String(dueThisWeekCount), tone: "text-amber-500" },
-    { label: "Progress Submitted", value: String(progressSubmittedCount), tone: "text-emerald-600" },
-    { label: "Team Members", value: String(group?.members.length ?? 0), tone: "text-violet-600" }
+    { label: "Active Tasks", value: String(activeTasksCount), tone: "text-[var(--primary)]" },
+    { label: "Due This Week", value: String(dueThisWeekCount), tone: "text-[var(--warn)]" },
+    { label: "Progress Submitted", value: String(progressSubmittedCount), tone: "text-[var(--ok)]" },
+    { label: "Team Members", value: String(group?.members.length ?? 0), tone: "text-[var(--accent)]" }
   ];
 
   if (isLoading) {
@@ -98,42 +99,60 @@ const StudentDashboard = () => {
   }
 
   if (error) {
-    return <div className="text-sm text-rose-600">{error}</div>;
+    return <div className="text-sm text-[var(--danger)]">{error}</div>;
   }
 
   return (
     <div className="grid gap-6 md:gap-8">
-      <section className="reveal-up delay-1 lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] shadow-card p-6">
-        <p className="text-xs uppercase tracking-[0.2em] text-blue-500 font-medium">Overview</p>
-        <h2 className="mt-2 text-2xl font-bold text-[var(--text-strong)] md:text-3xl">Student Dashboard</h2>
-        <p className="mt-3 max-w-3xl text-sm text-[var(--text-muted)] md:text-base">
-          Track assigned tasks, submit weekly progress updates, and keep your project documentation aligned with guide expectations.
-        </p>
+      <section className="reveal-up delay-1 glass-panel rounded-[28px] border border-[var(--border)] bg-[var(--card-bg)] shadow-card p-6 md:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--bg-1)]/70 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--primary)]">
+              <Sparkles size={14} /> Overview
+            </p>
+            <h2 className="mt-3 text-3xl font-bold text-[var(--text-strong)] md:text-4xl">Student Dashboard</h2>
+            
+          </div>
+        </div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2">
         <Link
           to="/student/edi-major-project"
-          className="reveal-up delay-2 hover-glow lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card transition hover:-translate-y-0.5 hover:border-[var(--primary)]/50"
+          className="reveal-up delay-2 hover-glow lit-card rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card transition hover:-translate-y-0.5 hover:border-[var(--primary)]/50"
         >
-          <p className="text-xs uppercase tracking-[0.2em] text-blue-500 font-medium">Major Project</p>
-          <h3 className="mt-2 text-xl font-semibold text-[var(--text-strong)]">EDI</h3>
-          <p className="mt-2 text-sm text-[var(--text-muted)]">Open the EDI major project workspace, group details, and submission flow.</p>
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-[var(--primary)] font-medium">Major Project</p>
+              <h3 className="mt-2 text-xl font-semibold text-[var(--text-strong)]">EDI</h3>
+            </div>
+            <div className="rounded-2xl bg-[var(--primary)]/10 p-3 text-[var(--primary)]">
+              <ClipboardList size={20} />
+            </div>
+          </div>
+          <p className="mt-3 text-sm text-[var(--text-muted)]">Open the EDI major project workspace, group details, and submission flow.</p>
         </Link>
 
         <Link
           to="/student/course-project"
-          className="reveal-up delay-3 hover-glow lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card transition hover:-translate-y-0.5 hover:border-[var(--primary)]/50"
+          className="reveal-up delay-3 hover-glow lit-card rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card transition hover:-translate-y-0.5 hover:border-[var(--primary)]/50"
         >
-          <p className="text-xs uppercase tracking-[0.2em] text-emerald-500 font-medium">Course Project</p>
-          <h3 className="mt-2 text-xl font-semibold text-[var(--text-strong)]">CP</h3>
-          <p className="mt-2 text-sm text-[var(--text-muted)]">Open the course project workspace for planning, tracking, and team coordination.</p>
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-[var(--ok)] font-medium">Course Project</p>
+              <h3 className="mt-2 text-xl font-semibold text-[var(--text-strong)]">CP</h3>
+            </div>
+            <div className="rounded-2xl bg-[var(--ok)]/12 p-3 text-[var(--ok)]">
+              <BookOpen size={20} />
+            </div>
+          </div>
+          <p className="mt-3 text-sm text-[var(--text-muted)]">Open the course project workspace for planning, tracking, and team coordination.</p>
         </Link>
       </section>
 
       <section className="grid gap-6 md:gap-8 lg:grid-cols-[1fr_1.2fr]">
-        <article className="reveal-up delay-2 hover-glow lit-card rounded-lg border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-blue-500">Group Details</p>
+        <article className="reveal-up delay-2 hover-glow lit-card rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--primary)]">Group Details</p>
           {group ? (
             <div className="mt-3 space-y-3">
               <div>
@@ -166,7 +185,7 @@ const StudentDashboard = () => {
           )}
         </article>
 
-        <article className="reveal-up delay-3 hover-glow lit-card rounded-lg border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
+        <article className="reveal-up delay-3 hover-glow lit-card rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-semibold text-[var(--text-strong)]">Notifications</h3>
             <span className="rounded-full bg-[var(--primary)]/15 px-2 py-1 text-xs text-[var(--primary)]">Assigned by Guide</span>
@@ -187,7 +206,7 @@ const StudentDashboard = () => {
 
       <section className="grid gap-6 md:gap-8 sm:grid-cols-2 xl:grid-cols-4">
         {quickStats.map((item) => (
-          <article key={item.label} className="reveal-up delay-4 hover-glow lit-card rounded-lg border border-[var(--border)] bg-[var(--card-bg)] p-4 shadow-card transition hover:-translate-y-0.5 hover:border-[var(--primary)]/50 hover:shadow-card">
+          <article key={item.label} className="reveal-up delay-4 hover-glow lit-card rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-4 shadow-card transition hover:-translate-y-0.5 hover:border-[var(--primary)]/50 hover:shadow-card">
             <p className="text-xs uppercase tracking-wider text-[var(--text-muted)]">{item.label}</p>
             <p className={`mt-2 text-3xl font-bold ${item.tone}`}>{item.value}</p>
           </article>
@@ -195,7 +214,7 @@ const StudentDashboard = () => {
       </section>
 
       <section className="grid gap-6 md:gap-8 lg:grid-cols-[1.3fr_1fr]">
-        <article className="reveal-up delay-5 hover-glow lit-card rounded-lg border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
+        <article className="reveal-up delay-5 hover-glow lit-card rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="text-base font-semibold text-[var(--text-strong)]">Upcoming Deadlines</h3>
             <span className="rounded-full bg-[var(--primary)]/15 px-2 py-1 text-xs text-[var(--primary)]">Sprint 3</span>
@@ -215,7 +234,7 @@ const StudentDashboard = () => {
           </ul>
         </article>
 
-        <article className="reveal-up delay-6 hover-glow lit-card rounded-lg border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
+        <article className="reveal-up delay-6 hover-glow lit-card rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
           <h3 className="text-base font-semibold text-[var(--text-strong)]">Recent Activity</h3>
           <ul className="mt-4 space-y-3">
             {recentActivity.map((activity) => (
@@ -228,7 +247,7 @@ const StudentDashboard = () => {
         </article>
       </section>
 
-      <section className="reveal-up delay-6 hover-glow lit-card rounded-lg border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
+      <section className="reveal-up delay-6 hover-glow lit-card rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
         <h3 className="text-base font-semibold text-[var(--text-strong)]">Progress Snapshot</h3>
         <div className="mt-3 space-y-2">
           <div className="flex items-center justify-between text-sm text-[var(--text-body)]">
@@ -237,7 +256,7 @@ const StudentDashboard = () => {
           </div>
           <div className="h-2 rounded-full bg-[var(--primary)]/15">
             <div
-              className="h-2 rounded-full bg-blue-500"
+              className="h-2 rounded-full bg-[var(--primary)]"
               style={{ width: `${averageCompletion}%` }}
             />
           </div>

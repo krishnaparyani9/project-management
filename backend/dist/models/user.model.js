@@ -3,6 +3,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserModel = void 0;
 const mongoose_1 = require("mongoose");
 const userSchema = new mongoose_1.Schema({
+    role: {
+        type: String,
+        enum: ["student", "guide", "admin"],
+        default: "student",
+        required: true
+    },
+    hasCreatedGroup: {
+        type: Boolean,
+        default: false
+    },
     name: {
         type: String,
         required: true,
@@ -17,14 +27,23 @@ const userSchema = new mongoose_1.Schema({
     },
     password: {
         type: String,
-        required: true,
+        required: false,
         minlength: 6
     },
-    role: {
+    branch: {
         type: String,
-        enum: ["student", "guide"],
-        default: "student",
-        required: true
+        trim: true,
+        default: undefined
+    },
+    division: {
+        type: String,
+        trim: true,
+        default: undefined
+    },
+    rollNo: {
+        type: String,
+        trim: true,
+        default: undefined
     }
 }, { timestamps: true });
 exports.UserModel = (0, mongoose_1.model)("User", userSchema);

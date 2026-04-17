@@ -7,9 +7,11 @@ const node_http_1 = __importDefault(require("node:http"));
 const app_1 = __importDefault(require("./app"));
 const db_1 = require("./config/db");
 const env_1 = require("./config/env");
+const portRecovery_1 = require("./utils/portRecovery");
 const startServer = async () => {
     try {
         await (0, db_1.connectDB)();
+        await (0, portRecovery_1.ensurePortIsFreeForDev)(env_1.env.port, env_1.env.autoFreePort && env_1.env.nodeEnv !== "production");
         const server = node_http_1.default.createServer(app_1.default);
         server.on("error", (error) => {
             if (error.code === "EADDRINUSE") {

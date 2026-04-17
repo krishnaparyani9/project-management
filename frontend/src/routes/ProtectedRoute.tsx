@@ -5,7 +5,7 @@ const ProtectedRoute = () => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div className="p-6 text-sm text-slate-300">Checking your session...</div>;
+    return <div className="p-6 text-sm text-[var(--text-muted)]">Checking your session...</div>;
   }
 
   if (!isAuthenticated) {

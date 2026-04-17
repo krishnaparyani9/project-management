@@ -19,7 +19,7 @@ exports.getMyProgressUpdates = (0, asyncHandler_1.asyncHandler)(async (req, res)
 });
 exports.getGuideProgressUpdates = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
     const userId = req.user?.userId;
-    const groups = await projectGroup_model_1.ProjectGroupModel.find({ guide: userId }).select("members").lean();
+    const groups = await projectGroup_model_1.ProjectGroupModel.find({ ediGuide: userId }).select("members").lean();
     const studentIds = groups.flatMap((group) => group.members);
     const updates = await progressUpdate_model_1.ProgressUpdateModel.find({ student: { $in: studentIds } })
         .populate("student", "name email")
