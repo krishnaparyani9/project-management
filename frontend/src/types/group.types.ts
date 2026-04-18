@@ -21,6 +21,17 @@ export interface GuideUser {
   teachingSubjectIds?: string[];
 }
 
+export interface GroupProject {
+  id: string;
+  title: string;
+  subjectId: string;
+  subjectName: string;
+  guideName: string;
+  repositoryUrl?: string | null;
+  createdBy: string;
+  createdAt: string | null;
+}
+
 export interface CourseProjectRegistration {
   subjectId: string;
   subjectName: string;
@@ -43,6 +54,7 @@ export interface ProjectGroup {
   ediGuide: GuideUser | null;
   cpGuide: GuideUser | null;
   guide: GuideUser | null;
+  projects: GroupProject[];
   courseProjectRegistrations: CourseProjectRegistration[];
   owner: GroupOwner;
   members: GroupMember[];

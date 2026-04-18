@@ -3,12 +3,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppError = exports.getUserById = exports.googleAuthLogin = exports.loginUser = exports.registerUser = void 0;
+exports.AppError = exports.getUserById = exports.googleAuthLogin = exports.loginUser = exports.registerUser = exports.updateGuideSubjects = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const zod_1 = require("zod");
 const google_auth_library_1 = require("google-auth-library");
+const mongoose_1 = require("mongoose");
 const env_1 = require("../config/env");
+const subject_model_1 = require("../models/subject.model");
 const user_model_1 = require("../models/user.model");
 const googleClient = new google_auth_library_1.OAuth2Client(env_1.env.googleClientId);
 const signupSchema = zod_1.z.object({
@@ -50,6 +52,48 @@ const createToken = (payload) => {
     };
     return jsonwebtoken_1.default.sign(payload, secret, options);
 };
+const toTeachingSubjectIds = (subjects) => {
+    if (!Array.isArray(subjects))
+        return [];
+    return subjects
+        .map((subject) => {
+        if (typeof subject === "string")
+            return subject;
+        if (subject && typeof subject === "object" && "_id" in subject)
+            return String(subject._id ?? "");
+        return String(subject ?? "");
+    })
+        .filter(Boolean);
+};
+const assertValidSubjectIds = async (subjectIds) => {
+    const uniqueIds = [...new Set(subjectIds.map((subjectId) => subjectId.trim()).filter(Boolean))];
+    for (const subjectId of uniqueIds) {
+        if (!mongoose_1.Types.ObjectId.isValid(subjectId)) {
+            throw new AppError(400, "Invalid subject ID");
+        }
+    }
+    if (uniqueIds.length === 0)
+        return uniqueIds;
+    const existingSubjects = await subject_model_1.SubjectModel.find({ _id: { $in: uniqueIds } }).select("_id").lean();
+    if (existingSubjects.length !== uniqueIds.length) {
+        throw new AppError(404, "One or more selected subjects were not found");
+    }
+    return uniqueIds;
+};
+const updateGuideSubjects = async (userId, subjectIds) => {
+    const user = await user_model_1.UserModel.findById(userId);
+    if (!user) {
+        throw new AppError(404, "User not found");
+    }
+    if (user.role !== "guide") {
+        throw new AppError(403, "Only guides can update teaching subjects");
+    }
+    const validSubjectIds = await assertValidSubjectIds(subjectIds);
+    user.teachingSubjects = validSubjectIds.map((subjectId) => new mongoose_1.Types.ObjectId(subjectId));
+    await user.save();
+    return toAuthResult(user);
+};
+exports.updateGuideSubjects = updateGuideSubjects;
 const toAuthResult = (user) => {
     const token = createToken({ userId: String(user._id), role: user.role });
     return {
@@ -62,7 +106,8 @@ const toAuthResult = (user) => {
             hasCreatedGroup: user.hasCreatedGroup ?? false,
             branch: user.branch,
             division: user.division,
-            rollNo: user.rollNo
+            rollNo: user.rollNo,
+            teachingSubjectIds: toTeachingSubjectIds(user.teachingSubjects)
         }
     };
 };
@@ -90,7 +135,8 @@ const registerUser = async (input) => {
         hasCreatedGroup: false,
         branch: payload.role === "student" ? payload.branch?.trim() : undefined,
         division: payload.role === "student" ? payload.division?.trim() : undefined,
-        rollNo: payload.role === "student" ? payload.rollNo?.trim() : undefined
+        rollNo: payload.role === "student" ? payload.rollNo?.trim() : undefined,
+        teachingSubjects: []
     });
     return toAuthResult(user);
 };
@@ -132,7 +178,8 @@ const googleAuthLogin = async (credential, role) => {
             name: payload.name || email.split("@")[0],
             email,
             role,
-            hasCreatedGroup: false
+            hasCreatedGroup: false,
+            teachingSubjects: []
         });
     }
     else if (user.role !== role) {
@@ -154,7 +201,8 @@ const getUserById = async (userId) => {
         hasCreatedGroup: user.hasCreatedGroup ?? false,
         branch: user.branch,
         division: user.division,
-        rollNo: user.rollNo
+        rollNo: user.rollNo,
+        teachingSubjectIds: toTeachingSubjectIds(user.teachingSubjects)
     };
 };
 exports.getUserById = getUserById;

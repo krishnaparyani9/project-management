@@ -7,4 +7,6 @@ const role_middleware_1 = require("../middleware/role.middleware");
 const router = (0, express_1.Router)();
 router.get("/my", auth_middleware_1.authenticate, task_controller_1.getMyTasks);
 router.get("/guide", auth_middleware_1.authenticate, (0, role_middleware_1.authorizeRoles)("guide"), task_controller_1.getGuideTasks);
+router.post("/", auth_middleware_1.authenticate, (0, role_middleware_1.authorizeRoles)("guide"), task_controller_1.createGuideTask);
+router.patch("/:id/status", auth_middleware_1.authenticate, (0, role_middleware_1.authorizeRoles)("student"), task_controller_1.updateMyTaskStatus);
 exports.default = router;

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logout = exports.me = exports.googleLogin = exports.login = exports.signup = void 0;
+exports.logout = exports.updateProfile = exports.me = exports.googleLogin = exports.login = exports.signup = void 0;
 const ApiResponse_1 = require("../utils/ApiResponse");
 const asyncHandler_1 = require("../utils/asyncHandler");
 const env_1 = require("../config/env");
@@ -36,6 +36,12 @@ exports.me = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
     const userId = req.user?.userId;
     const user = await (0, auth_service_1.getUserById)(String(userId));
     res.status(200).json(new ApiResponse_1.ApiResponse(true, "Current user fetched", { user }));
+});
+exports.updateProfile = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+    const userId = req.user?.userId;
+    const { teachingSubjectIds } = req.body;
+    const user = await (0, auth_service_1.updateGuideSubjects)(String(userId), Array.isArray(teachingSubjectIds) ? teachingSubjectIds : []);
+    res.status(200).json(new ApiResponse_1.ApiResponse(true, "Profile updated", { user: user.user }));
 });
 exports.logout = (0, asyncHandler_1.asyncHandler)(async (_req, res) => {
     res.clearCookie(accessCookieName, {

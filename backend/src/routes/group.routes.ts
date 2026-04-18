@@ -3,6 +3,7 @@ import {
 	createGroup, getMyGroup, getMyInvites,
 	inviteStudent, respondToInvite, cancelInvite,
 	removeMember, leaveGroup, updateGroup, deleteGroup,
+	addGroupProject, updateGroupProject,
 	registerCourseProjectSubject, assignCourseProjectLabFaculty,
 	registerEdiGroup,
 	getGuideGroups,
@@ -28,6 +29,8 @@ router.post("/", authenticate, authorizeRoles("student"), createGroup);
 
 // Student owner: manage own group
 router.patch("/:id",                        authenticate, authorizeRoles("student"), updateGroup);
+router.post("/:id/projects",               authenticate, authorizeRoles("student"), addGroupProject);
+router.patch("/:id/projects/:projectId",    authenticate, authorizeRoles("student"), updateGroupProject);
 router.delete("/:id",                       authenticate, authorizeRoles("student"), deleteGroup);
 router.delete("/:id/leave",                 authenticate, authorizeRoles("student"), leaveGroup);
 router.post("/:id/register-course-project", authenticate, authorizeRoles("student"), registerCourseProjectSubject);

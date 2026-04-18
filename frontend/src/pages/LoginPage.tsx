@@ -113,7 +113,7 @@ const LoginPage = () => {
 
       <div className="my-4 flex items-center">
         <div className="flex-grow border-t border-[var(--border)]"></div>
-        <span className="mx-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">Or sign in with email</span>
+        <span className="mx-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]"> sign in with email</span>
         <div className="flex-grow border-t border-[var(--border)]"></div>
       </div>
 

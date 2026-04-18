@@ -9,9 +9,13 @@ export interface ITask {
 	description: string;
 	assignee: Types.ObjectId;
 	group?: Types.ObjectId;
+	createdBy?: Types.ObjectId;
 	dueDate: Date;
 	status: TaskStatus;
 	priority: TaskPriority;
+	completionNote?: string;
+	completionCommitUrls: string[];
+	completedAt?: Date;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -22,6 +26,7 @@ const taskSchema = new Schema<ITask>(
 		description: { type: String, default: "", trim: true },
 		assignee: { type: Schema.Types.ObjectId, ref: "User", required: true },
 		group: { type: Schema.Types.ObjectId, ref: "ProjectGroup" },
+		createdBy: { type: Schema.Types.ObjectId, ref: "User" },
 		dueDate: { type: Date, required: true },
 		status: {
 			type: String,
@@ -34,7 +39,10 @@ const taskSchema = new Schema<ITask>(
 			enum: ["low", "medium", "high"],
 			default: "medium",
 			required: true
-		}
+		},
+		completionNote: { type: String, trim: true, default: "" },
+		completionCommitUrls: [{ type: String, trim: true }],
+		completedAt: { type: Date, default: null }
 	},
 	{ timestamps: true }
 );

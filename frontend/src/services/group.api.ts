@@ -50,3 +50,9 @@ export const registerCourseProjectSubject = (groupId: string, data: { subjectId:
 
 export const assignCourseProjectLabFaculty = (groupId: string, data: { subjectId: string; facultyId: string | null }) =>
 	api.post<AR<ProjectGroup>>(`/groups/${groupId}/course-project-lab-faculty`, data);
+
+export const addGroupProject = (groupId: string, data: { title: string; subjectId: string }) =>
+	api.post<AR<ProjectGroup>>(`/groups/${groupId}/projects`, data);
+
+export const updateGroupProject = (groupId: string, projectId: string, data: { repositoryUrl?: string | null }) =>
+	api.patch<AR<ProjectGroup>>(`/groups/${groupId}/projects/${projectId}`, data);

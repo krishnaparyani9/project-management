@@ -44,6 +44,10 @@ const userSchema = new mongoose_1.Schema({
         type: String,
         trim: true,
         default: undefined
+    },
+    teachingSubjects: {
+        type: [{ type: mongoose_1.Schema.Types.ObjectId, ref: "Subject" }],
+        default: []
     }
 }, { timestamps: true });
 exports.UserModel = (0, mongoose_1.model)("User", userSchema);

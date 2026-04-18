@@ -3,10 +3,13 @@ import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import SignupPage from "../pages/SignupPage";
 import StudentDashboard from "../pages/StudentDashboard";
+import StudentProjectsPage from "../pages/StudentProjectsPage";
+import StudentProjectDetailsPage from "../pages/StudentProjectDetailsPage";
 import EdiMajorProjectPage from "../pages/EdiMajorProjectPage";
 import CourseProjectPage from "../pages/CourseProjectPage";
 import GuideDashboard from "../pages/GuideDashboard";
 import GuideSubjectsPage from "../pages/GuideSubjectsPage";
+import GuideMentoringProjectsPage from "../pages/GuideMentoringProjectsPage";
 import GroupPage from "../pages/GroupPage";
 import TasksPage from "../pages/TasksPage";
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -34,8 +37,11 @@ const AppRoutes = () => {
           <Route path="/dashboard" element={<DashboardHome />} />
           <Route path="/groups" element={<GroupPage />} />
           <Route path="/guide/subjects" element={<GuideSubjectsPage />} />
+          <Route path="/guide/projects" element={<GuideMentoringProjectsPage />} />
           <Route path="/student/edi-major-project" element={<EdiMajorProjectPage />} />
           <Route path="/student/course-project" element={<CourseProjectPage />} />
+          <Route path="/student/projects" element={<StudentProjectsPage />} />
+          <Route path="/student/projects/:projectId" element={<StudentProjectDetailsPage />} />
           <Route path="/tasks" element={<TasksPage />} />
         </Route>
       </Route>

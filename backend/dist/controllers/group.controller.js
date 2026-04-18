@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllGuides = exports.getAllGroups = exports.assignCpGuide = exports.assignGuide = exports.getGuideGroups = exports.deleteGroup = exports.registerEdiGroup = exports.updateGroup = exports.leaveGroup = exports.removeMember = exports.cancelInvite = exports.respondToInvite = exports.inviteStudent = exports.getMyInvites = exports.getMyGroup = exports.createGroup = exports.getAllGroupNames = void 0;
+exports.getGuidesBySubject = exports.getAllGuides = exports.getAllGroups = exports.assignCpGuide = exports.assignGuide = exports.getGuideGroups = exports.deleteGroup = exports.registerEdiGroup = exports.assignCourseProjectLabFaculty = exports.registerCourseProjectSubject = exports.updateGroupProject = exports.addGroupProject = exports.updateGroup = exports.leaveGroup = exports.removeMember = exports.cancelInvite = exports.respondToInvite = exports.inviteStudent = exports.getMyInvites = exports.getMyGroup = exports.createGroup = exports.getAllGroupNames = void 0;
 exports.getAllGroupNames = (0, asyncHandler_1.asyncHandler)(async (_req, res) => {
     const groups = await projectGroup_model_1.ProjectGroupModel.find({}, { name: 1, _id: 0 })
         .populate({ path: "owner", select: "branch division" })
@@ -15,6 +15,7 @@ exports.getAllGroupNames = (0, asyncHandler_1.asyncHandler)(async (_req, res) =>
 });
 const mongoose_1 = require("mongoose");
 const projectGroup_model_1 = require("../models/projectGroup.model");
+const subject_model_1 = require("../models/subject.model");
 const user_model_1 = require("../models/user.model");
 const ApiResponse_1 = require("../utils/ApiResponse");
 const asyncHandler_1 = require("../utils/asyncHandler");
@@ -22,16 +23,28 @@ const POPULATE = [
     { path: "owner", select: "name email" },
     { path: "ediGuide", select: "name email" },
     { path: "cpGuide", select: "name email" },
+    { path: "courseProjectRegistrations.subjectId", select: "name" },
+    { path: "courseProjectRegistrations.labFaculty", select: "name email" },
     { path: "members", select: "name email role branch division rollNo" },
     { path: "pendingInvites", select: "name email" }
 ];
+const toTeachingSubjectIds = (subjects = []) => subjects
+    .map((subject) => {
+    if (typeof subject === "string")
+        return subject;
+    if (subject && typeof subject === "object" && "_id" in subject)
+        return String(subject._id ?? "");
+    return String(subject ?? "");
+})
+    .filter(Boolean);
 const fu = (u) => ({
     id: String(u._id),
     name: u.name,
     email: u.email,
     branch: u.branch,
     division: u.division,
-    rollNo: u.rollNo
+    rollNo: u.rollNo,
+    teachingSubjectIds: toTeachingSubjectIds(u.teachingSubjects)
 });
 const normalizeRepositoryUrl = (value) => value.trim().replace(/\/+$/, "");
 const isValidGithubRepositoryUrl = (value) => /^https?:\/\/(www\.)?github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\.git)?$/i.test(value);
@@ -45,9 +58,41 @@ const formatGroup = (g) => ({
     guide: g.ediGuide ? fu(g.ediGuide) : null,
     ediGuide: g.ediGuide ? fu(g.ediGuide) : null,
     cpGuide: g.cpGuide ? fu(g.cpGuide) : null,
+    projects: (g.projects ?? []).map((entry) => {
+        const project = entry;
+        return {
+            id: String(project._id ?? ""),
+            title: String(project.title ?? ""),
+            subjectId: String(project.subjectId?._id ?? project.subjectId ?? ""),
+            subjectName: String(project.subjectName ?? ""),
+            guideName: String(project.guideName ?? "Not assigned"),
+            repositoryUrl: project.repositoryUrl ?? null,
+            createdBy: String(project.createdBy?._id ?? project.createdBy ?? ""),
+            createdAt: project.createdAt ? new Date(project.createdAt).toISOString() : null
+        };
+    }),
+    courseProjectRegistrations: (g.courseProjectRegistrations ?? []).map((entry) => {
+        const registration = entry;
+        return {
+            subjectId: String(registration.subjectId?._id ?? registration.subjectId ?? ""),
+            subjectName: String(registration.subjectName ?? ""),
+            labFaculty: registration.labFaculty ? fu(registration.labFaculty) : null,
+            registeredAt: registration.registeredAt ? new Date(registration.registeredAt).toISOString() : null
+        };
+    }),
     members: g.members.map((m) => ({ ...fu(m), role: m.role ?? "student" })),
     pendingInvites: g.pendingInvites.map(fu)
 });
+const userBelongsToGroup = (group, userId) => String(group.owner) === userId || group.members.some((memberId) => String(memberId) === userId);
+const resolveProjectGuideName = async (group, subjectId) => {
+    const registrations = group.courseProjectRegistrations ?? [];
+    const registration = registrations.find((entry) => String(entry.subjectId?._id ?? entry.subjectId ?? "") === subjectId);
+    if (!registration?.labFaculty)
+        return "Not assigned";
+    const facultyId = String(registration.labFaculty?._id ?? registration.labFaculty ?? "");
+    const faculty = await user_model_1.UserModel.findById(facultyId).select("name").lean();
+    return faculty?.name ?? "Not assigned";
+};
 // ─── Student: create a group (becomes owner + first member) ──────────────────
 exports.createGroup = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
     const ownerId = req.user.userId;
@@ -82,6 +127,7 @@ exports.createGroup = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
         owner: new mongoose_1.Types.ObjectId(ownerId),
         ediGuide: null,
         cpGuide: null,
+        courseProjectRegistrations: [],
         members: [new mongoose_1.Types.ObjectId(ownerId)],
         pendingInvites: []
     });
@@ -231,12 +277,22 @@ exports.leaveGroup = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
 });
 // ─── Student owner: update group name / subject ──────────────────────────────
 exports.updateGroup = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
-    const ownerId = req.user.userId;
+    const userId = req.user.userId;
     const { id } = req.params;
     const { name, subject, repositoryUrl } = req.body;
-    const group = await projectGroup_model_1.ProjectGroupModel.findOne({ _id: id, owner: ownerId });
+    const group = await projectGroup_model_1.ProjectGroupModel.findById(id);
     if (!group) {
         res.status(404).json(new ApiResponse_1.ApiResponse(false, "Group not found or unauthorized", null));
+        return;
+    }
+    const isMember = group.members.some((memberId) => String(memberId) === userId);
+    if (!isMember) {
+        res.status(403).json(new ApiResponse_1.ApiResponse(false, "Only group members can update this group", null));
+        return;
+    }
+    const isOwner = String(group.owner) === userId;
+    if ((name?.trim() || subject?.trim()) && !isOwner) {
+        res.status(403).json(new ApiResponse_1.ApiResponse(false, "Only group owner can update name or subject", null));
         return;
     }
     if (name?.trim())
@@ -259,6 +315,156 @@ exports.updateGroup = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
     await group.save();
     const populated = await group.populate(POPULATE);
     res.status(200).json(new ApiResponse_1.ApiResponse(true, "Group updated", formatGroup(populated.toObject())));
+});
+// ─── Group members: create a shared project ────────────────────────────────
+exports.addGroupProject = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+    const userId = req.user.userId;
+    const { id } = req.params;
+    const { title, subjectId } = req.body;
+    if (!title?.trim()) {
+        res.status(400).json(new ApiResponse_1.ApiResponse(false, "Project title is required", null));
+        return;
+    }
+    if (!subjectId?.trim() || !mongoose_1.Types.ObjectId.isValid(subjectId)) {
+        res.status(400).json(new ApiResponse_1.ApiResponse(false, "Valid subject is required", null));
+        return;
+    }
+    const group = await projectGroup_model_1.ProjectGroupModel.findById(id);
+    if (!group || !userBelongsToGroup(group.toObject(), userId)) {
+        res.status(404).json(new ApiResponse_1.ApiResponse(false, "Group not found or unauthorized", null));
+        return;
+    }
+    const subject = await subject_model_1.SubjectModel.findById(subjectId).select("name").lean();
+    if (!subject) {
+        res.status(404).json(new ApiResponse_1.ApiResponse(false, "Subject not found", null));
+        return;
+    }
+    group.projects = group.projects ?? [];
+    group.projects.push({
+        _id: new mongoose_1.Types.ObjectId(),
+        title: title.trim(),
+        subjectId: new mongoose_1.Types.ObjectId(subjectId),
+        subjectName: subject.name,
+        guideName: await resolveProjectGuideName(group.toObject(), subjectId),
+        repositoryUrl: null,
+        createdBy: new mongoose_1.Types.ObjectId(userId),
+        createdAt: new Date()
+    });
+    await group.save();
+    const populated = await group.populate(POPULATE);
+    res.status(201).json(new ApiResponse_1.ApiResponse(true, "Project added", formatGroup(populated.toObject())));
+});
+// ─── Group members: update a shared project ────────────────────────────────
+exports.updateGroupProject = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+    const userId = req.user.userId;
+    const { id, projectId } = req.params;
+    const { repositoryUrl } = req.body;
+    const group = await projectGroup_model_1.ProjectGroupModel.findById(id);
+    if (!group || !userBelongsToGroup(group.toObject(), userId)) {
+        res.status(404).json(new ApiResponse_1.ApiResponse(false, "Group not found or unauthorized", null));
+        return;
+    }
+    const project = group.projects?.find((entry) => String(entry._id) === projectId);
+    if (!project) {
+        res.status(404).json(new ApiResponse_1.ApiResponse(false, "Project not found", null));
+        return;
+    }
+    if (repositoryUrl !== undefined) {
+        if (!repositoryUrl || !repositoryUrl.trim()) {
+            project.repositoryUrl = null;
+        }
+        else {
+            const normalizedRepositoryUrl = normalizeRepositoryUrl(repositoryUrl);
+            if (!isValidGithubRepositoryUrl(normalizedRepositoryUrl)) {
+                res.status(400).json(new ApiResponse_1.ApiResponse(false, "Provide a valid GitHub repository URL", null));
+                return;
+            }
+            project.repositoryUrl = normalizedRepositoryUrl;
+        }
+    }
+    await group.save();
+    const populated = await group.populate(POPULATE);
+    res.status(200).json(new ApiResponse_1.ApiResponse(true, "Project updated", formatGroup(populated.toObject())));
+});
+// ─── Student owner: register a subject for course project ───────────────────
+exports.registerCourseProjectSubject = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+    const ownerId = req.user.userId;
+    const { id } = req.params;
+    const { subjectId } = req.body;
+    if (!subjectId?.trim()) {
+        res.status(400).json(new ApiResponse_1.ApiResponse(false, "Subject is required", null));
+        return;
+    }
+    if (!mongoose_1.Types.ObjectId.isValid(subjectId)) {
+        res.status(400).json(new ApiResponse_1.ApiResponse(false, "Invalid subject ID", null));
+        return;
+    }
+    const group = await projectGroup_model_1.ProjectGroupModel.findOne({ _id: id, owner: ownerId });
+    if (!group) {
+        res.status(404).json(new ApiResponse_1.ApiResponse(false, "Group not found or unauthorized", null));
+        return;
+    }
+    group.courseProjectRegistrations = group.courseProjectRegistrations ?? [];
+    const subject = await subject_model_1.SubjectModel.findById(subjectId).select("name");
+    if (!subject) {
+        res.status(404).json(new ApiResponse_1.ApiResponse(false, "Subject not found", null));
+        return;
+    }
+    const existingRegistration = group.courseProjectRegistrations.find((entry) => String(entry.subjectId) === subjectId);
+    if (!existingRegistration) {
+        group.courseProjectRegistrations.push({
+            subjectId: new mongoose_1.Types.ObjectId(subjectId),
+            subjectName: subject.name,
+            labFaculty: null,
+            registeredAt: new Date()
+        });
+        await group.save();
+    }
+    const populated = await group.populate(POPULATE);
+    res.status(200).json(new ApiResponse_1.ApiResponse(true, "Subject registered for course project", formatGroup(populated.toObject())));
+});
+// ─── Student owner: select lab faculty for a registered subject ────────────
+exports.assignCourseProjectLabFaculty = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+    const ownerId = req.user.userId;
+    const { id } = req.params;
+    const { subjectId, facultyId } = req.body;
+    if (!subjectId?.trim()) {
+        res.status(400).json(new ApiResponse_1.ApiResponse(false, "Subject is required", null));
+        return;
+    }
+    if (!mongoose_1.Types.ObjectId.isValid(subjectId)) {
+        res.status(400).json(new ApiResponse_1.ApiResponse(false, "Invalid subject ID", null));
+        return;
+    }
+    const group = await projectGroup_model_1.ProjectGroupModel.findOne({ _id: id, owner: ownerId });
+    if (!group) {
+        res.status(404).json(new ApiResponse_1.ApiResponse(false, "Group not found or unauthorized", null));
+        return;
+    }
+    group.courseProjectRegistrations = group.courseProjectRegistrations ?? [];
+    const registration = group.courseProjectRegistrations.find((entry) => String(entry.subjectId) === subjectId);
+    if (!registration) {
+        res.status(400).json(new ApiResponse_1.ApiResponse(false, "Register the subject before choosing a lab faculty", null));
+        return;
+    }
+    if (facultyId) {
+        if (!mongoose_1.Types.ObjectId.isValid(facultyId)) {
+            res.status(400).json(new ApiResponse_1.ApiResponse(false, "Invalid faculty ID", null));
+            return;
+        }
+        const faculty = await user_model_1.UserModel.findOne({ _id: facultyId, role: "guide" });
+        if (!faculty) {
+            res.status(404).json(new ApiResponse_1.ApiResponse(false, "Lab faculty not found", null));
+            return;
+        }
+        registration.labFaculty = new mongoose_1.Types.ObjectId(facultyId);
+    }
+    else {
+        registration.labFaculty = null;
+    }
+    await group.save();
+    const populated = await group.populate(POPULATE);
+    res.status(200).json(new ApiResponse_1.ApiResponse(true, "Lab faculty updated", formatGroup(populated.toObject())));
 });
 // ─── Student owner: register group for EDI guide assignment ─────────────────
 exports.registerEdiGroup = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
@@ -371,6 +577,24 @@ exports.getAllGroups = (0, asyncHandler_1.asyncHandler)(async (_req, res) => {
 });
 // ─── Admin: list all guide users ─────────────────────────────────────────────
 exports.getAllGuides = (0, asyncHandler_1.asyncHandler)(async (_req, res) => {
-    const guides = await user_model_1.UserModel.find({ role: "guide" }).select("name email").lean();
-    res.status(200).json(new ApiResponse_1.ApiResponse(true, "Guides fetched", guides.map((g) => ({ id: String(g._id), name: g.name, email: g.email }))));
+    const guides = await user_model_1.UserModel.find({ role: "guide" }).select("name email teachingSubjects").populate("teachingSubjects", "name description").lean();
+    res.status(200).json(new ApiResponse_1.ApiResponse(true, "Guides fetched", guides.map((g) => fu(g))));
+});
+// ─── Student / Guide / Admin: list guides for a subject ─────────────────────
+exports.getGuidesBySubject = (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+    const { subjectId } = req.params;
+    if (!mongoose_1.Types.ObjectId.isValid(subjectId)) {
+        res.status(400).json(new ApiResponse_1.ApiResponse(false, "Invalid subject ID", null));
+        return;
+    }
+    const subject = await subject_model_1.SubjectModel.findById(subjectId).select("_id").lean();
+    if (!subject) {
+        res.status(404).json(new ApiResponse_1.ApiResponse(false, "Subject not found", null));
+        return;
+    }
+    const guides = await user_model_1.UserModel.find({ role: "guide", teachingSubjects: subjectId })
+        .select("name email teachingSubjects")
+        .populate("teachingSubjects", "name description")
+        .lean();
+    res.status(200).json(new ApiResponse_1.ApiResponse(true, "Guides fetched", guides.map((g) => fu(g))));
 });
