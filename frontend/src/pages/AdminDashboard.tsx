@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { BookOpen, Plus, Trash2, Users, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import { BookOpen, Plus, Trash2, Users, Sparkles, ArrowRight, LayoutGrid, FolderOpen } from "lucide-react";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import { fetchAllSubjects, createSubject, deleteSubject, type Subject } from "../services/subject.api";
@@ -70,6 +71,31 @@ const AdminDashboard = () => {
 		setActiveSubjectId(curr => curr === id ? null : id);
 	};
 
+	const normalize = (value?: string | null) => (value ?? "").trim().toLowerCase();
+
+	const isGroupMappedToSubject = (group: ProjectGroup, subject: Subject) => {
+		const subjectId = normalize(subject.id);
+		const subjectName = normalize(subject.name);
+		const groupSubject = normalize(group.subject);
+
+		if (groupSubject && (groupSubject === subjectId || groupSubject === subjectName)) {
+			return true;
+		}
+
+		return group.courseProjectRegistrations.some((registration) => {
+			const registrationSubjectId = normalize(registration.subjectId);
+			const registrationSubjectName = normalize(registration.subjectName);
+			return registrationSubjectId === subjectId || registrationSubjectName === subjectName;
+		});
+	};
+
+	const subjectsWithGroups = subjects.filter((subject) =>
+		groups.some((group) => isGroupMappedToSubject(group, subject))
+	).length;
+	const subjectsWithoutGroups = Math.max(subjects.length - subjectsWithGroups, 0);
+
+	const unassignedGroups = groups.filter((group) => !group.subject?.trim()).length;
+
 	return (
 		<div className="space-y-6">
 			<header className="reveal-up delay-1 glass-panel rounded-[28px] border border-[var(--border)] bg-[var(--card-bg)] p-6 shadow-card">
@@ -79,16 +105,58 @@ const AdminDashboard = () => {
 							<Sparkles size={14} /> Admin overview
 						</p>
 						<h2 className="mt-3 text-3xl font-bold text-[var(--text-strong)]">Admin Dashboard</h2>
-						<p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">Manage course project subjects and review which groups are attached to each subject.</p>
+						<p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">Manage subjects here and open dedicated pages for group-level operations. Page responsibilities stay separate and easy to maintain.</p>
 					</div>
-					<Button onClick={() => setIsAdding(!isAdding)} className="flex items-center gap-2">
-						<Plus size={16} /> {isAdding ? "Cancel" : "Add Subject"}
-					</Button>
+					<div className="flex flex-wrap items-center gap-3">
+						<Link
+							to="/groups"
+							className="inline-flex items-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--bg-1)] px-4 py-2 text-sm font-semibold text-[var(--text-body)] transition hover:border-[var(--primary)]/35 hover:text-[var(--primary)]"
+						>
+							Open Groups Page <ArrowRight size={16} />
+						</Link>
+						<Button onClick={() => setIsAdding(!isAdding)} className="flex items-center gap-2">
+							<Plus size={16} /> {isAdding ? "Cancel" : "Add Subject"}
+						</Button>
+					</div>
 				</div>
 			</header>
 
+			<section className="reveal-up delay-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+				<div className="rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
+					<div className="flex items-center justify-between">
+						<p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Total Subjects</p>
+						<LayoutGrid size={16} className="text-[var(--primary)]" />
+					</div>
+					<p className="mt-3 text-3xl font-bold text-[var(--text-strong)]">{subjects.length}</p>
+				</div>
+
+				<div className="rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
+					<div className="flex items-center justify-between">
+						<p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Total Groups</p>
+						<Users size={16} className="text-[var(--primary)]" />
+					</div>
+					<p className="mt-3 text-3xl font-bold text-[var(--text-strong)]">{groups.length}</p>
+				</div>
+
+				<div className="rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
+					<div className="flex items-center justify-between">
+						<p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Subjects Without Groups</p>
+						<BookOpen size={16} className="text-[var(--warn)]" />
+					</div>
+					<p className="mt-3 text-3xl font-bold text-[var(--text-strong)]">{subjectsWithoutGroups}</p>
+				</div>
+
+				<div className="rounded-[24px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
+					<div className="flex items-center justify-between">
+						<p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Unassigned Groups</p>
+						<FolderOpen size={16} className="text-[var(--warn)]" />
+					</div>
+					<p className="mt-3 text-3xl font-bold text-[var(--text-strong)]">{unassignedGroups}</p>
+				</div>
+			</section>
+
 			{isAdding && (
-				<form onSubmit={handleAddSubject} className="reveal-up delay-2 rounded-[28px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card max-w-xl">
+				<form onSubmit={handleAddSubject} className="reveal-up delay-3 rounded-[28px] border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card max-w-xl">
 					<h3 className="text-lg font-bold text-[var(--text-strong)] mb-4">New Subject</h3>
 					<div className="space-y-4">
 						<Input 
@@ -117,7 +185,7 @@ const AdminDashboard = () => {
 				</form>
 			)}
 
-			<div className="grid gap-4">
+			<div className="grid gap-4 reveal-up delay-4">
 				{subjects.length === 0 && !isAdding && (
 					<div className="text-center py-12 rounded-[28px] border border-dashed border-[var(--border)] bg-[var(--card-bg)] text-[var(--text-muted)] shadow-card">
 						<BookOpen size={32} className="mx-auto mb-3 opacity-50" />
@@ -126,9 +194,7 @@ const AdminDashboard = () => {
 				)}
 
 				{subjects.map(subject => {
-					// We filter groups where group.subject strictly equals the subject's name, 
-					// or generally fall back to showing generic ones if they are universal pending specific student input.
-					const subjectGroups = groups.filter(g => g.subject?.trim().toLowerCase() === subject.name.trim().toLowerCase());
+					const subjectGroups = groups.filter((group) => isGroupMappedToSubject(group, subject));
 					const isExpanded = activeSubjectId === subject.id;
 
 					return (
@@ -159,9 +225,14 @@ const AdminDashboard = () => {
 
 							{isExpanded && (
 								<div className="border-t border-[var(--border)] p-5 bg-[var(--bg-0)]/50">
-									<h4 className="mb-4 text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Registered Groups</h4>
+									<h4 className="mb-4 text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Registered Groups Snapshot</h4>
 									{subjectGroups.length === 0 ? (
-										<p className="text-sm italic text-[var(--text-muted)]">No student groups are currently registered under this specific subject.</p>
+										<div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--bg-1)] p-4">
+											<p className="text-sm italic text-[var(--text-muted)]">No groups currently mapped to this subject.</p>
+											<Link to="/groups" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-light)]">
+												Manage groups in Groups page <ArrowRight size={14} />
+											</Link>
+										</div>
 									) : (
 										<div className="grid gap-3 md:grid-cols-2">
 											{subjectGroups.map(group => (
@@ -175,6 +246,10 @@ const AdminDashboard = () => {
 													</span>
 												</div>
 											))}
+											<div className="md:col-span-2 rounded-2xl border border-dashed border-[var(--border)] bg-[var(--bg-1)]/50 p-4 text-sm text-[var(--text-muted)]">
+												For full member, invite, and guide assignment actions, continue in the
+												<Link to="/groups" className="ml-1 font-semibold text-[var(--primary)] hover:text-[var(--primary-light)]">Groups page</Link>.
+											</div>
 										</div>
 									)}
 								</div>

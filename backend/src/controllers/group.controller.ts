@@ -16,13 +16,14 @@ import type { Response } from "express";
 import { Types } from "mongoose";
 import { ProjectGroupModel } from "../models/projectGroup.model";
 import { SubjectModel } from "../models/subject.model";
+import { SystemSettingModel } from "../models/systemSetting.model";
 import { UserModel } from "../models/user.model";
 import type { AuthenticatedRequest } from "../types/auth.types";
 import { ApiResponse } from "../utils/ApiResponse";
 import { asyncHandler } from "../utils/asyncHandler";
 
 const POPULATE = [
-	{ path: "owner", select: "name email" },
+	{ path: "owner", select: "name email branch division" },
 	{ path: "ediGuide", select: "name email" },
 	{ path: "cpGuide", select: "name email" },
 	{ path: "courseProjectRegistrations.subjectId", select: "name" },
@@ -40,6 +41,20 @@ type PopUser = {
 	division?: string;
 	rollNo?: string;
 	teachingSubjects?: unknown[];
+};
+
+type StudentSummary = {
+	id: string;
+	name: string;
+	email: string;
+	branch: string;
+	division: string;
+	rollNo: string | null;
+};
+
+type StudentGroupStatus = StudentSummary & {
+	groupId: string | null;
+	groupName: string | null;
 };
 const toTeachingSubjectIds = (subjects: unknown[] = []) =>
 	subjects
@@ -59,6 +74,15 @@ const fu = (u: PopUser) => ({
 	rollNo: u.rollNo,
 	teachingSubjectIds: toTeachingSubjectIds(u.teachingSubjects)
 });
+
+const EDI_GLOBAL_LIMIT_KEY = "edi_global_assignment_limit";
+const EDI_GLOBAL_LIMIT_DEFAULT = 8;
+
+const getEdiGlobalLimit = async () => {
+	const setting = await SystemSettingModel.findOne({ key: EDI_GLOBAL_LIMIT_KEY }).select("valueNumber").lean();
+	if (!setting || typeof setting.valueNumber !== "number") return EDI_GLOBAL_LIMIT_DEFAULT;
+	return setting.valueNumber;
+};
 
 const normalizeRepositoryUrl = (value: string) => value.trim().replace(/\/+$/, "");
 const isValidGithubRepositoryUrl = (value: string) =>
@@ -665,6 +689,93 @@ export const assignGuide = asyncHandler(async (req: AuthenticatedRequest, res: R
 	res.status(200).json(new ApiResponse(true, "EDI guide assignment updated", formatGroup(populated.toObject() as unknown as Record<string, unknown>)));
 });
 
+// ─── Admin: randomly assign EDI guide with capacity limit ───────────────────
+export const assignGuideRandomly = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+	const { id } = req.params as { id: string };
+
+	const group = await ProjectGroupModel.findById(id);
+	if (!group) {
+		res.status(404).json(new ApiResponse(false, "Group not found", null));
+		return;
+	}
+
+	if (!group.isEdiRegistered) {
+		res.status(400).json(new ApiResponse(false, "Group must be registered in EDI before guide assignment", null));
+		return;
+	}
+
+	const guides = await UserModel.find({ role: "guide" }).select("name email").lean();
+	if (guides.length === 0) {
+		res.status(400).json(new ApiResponse(false, "No guides available for assignment", null));
+		return;
+	}
+
+	const globalLimit = await getEdiGlobalLimit();
+	if (globalLimit <= 0) {
+		res.status(400).json(new ApiResponse(false, "Global EDI guide limit is set to 0. Increase it to allow assignment.", null));
+		return;
+	}
+
+	const guideIds = guides.map((guide) => guide._id);
+	const assignmentStats = await ProjectGroupModel.aggregate<{ _id: Types.ObjectId; count: number }>([
+		{ $match: { isEdiRegistered: true, ediGuide: { $in: guideIds } } },
+		{ $group: { _id: "$ediGuide", count: { $sum: 1 } } }
+	]);
+
+	const countMap = new Map(assignmentStats.map((entry) => [String(entry._id), entry.count]));
+	const currentGuideId = group.ediGuide ? String(group.ediGuide) : null;
+
+	const eligibleGuides = guides.filter((guide) => {
+		const guideId = String(guide._id);
+		const currentCount = countMap.get(guideId) ?? 0;
+		const countAfterUnassigningCurrent = currentGuideId === guideId ? Math.max(0, currentCount - 1) : currentCount;
+		return countAfterUnassigningCurrent < globalLimit;
+	});
+
+	if (eligibleGuides.length === 0) {
+		res.status(400).json(new ApiResponse(false, "No guide has remaining EDI assignment capacity", null));
+		return;
+	}
+
+	const randomIndex = Math.floor(Math.random() * eligibleGuides.length);
+	const selectedGuide = eligibleGuides[randomIndex];
+	group.ediGuide = new Types.ObjectId(String(selectedGuide._id));
+
+	await group.save();
+	const populated = await group.populate(POPULATE);
+	res.status(200).json(
+		new ApiResponse(
+			true,
+			`Random EDI guide assigned successfully (global limit ${globalLimit})`,
+			formatGroup(populated.toObject() as unknown as Record<string, unknown>)
+		)
+	);
+});
+
+// ─── Admin: get global EDI guide assignment limit ──────────────────────────
+export const getEdiGuideLimit = asyncHandler(async (_req: AuthenticatedRequest, res: Response) => {
+	const limit = await getEdiGlobalLimit();
+	res.status(200).json(new ApiResponse(true, "Global EDI guide limit fetched", { limit }));
+});
+
+// ─── Admin: set global EDI guide assignment limit ──────────────────────────
+export const updateEdiGuideLimit = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+	const { limit } = req.body as { limit?: number };
+
+	if (typeof limit !== "number" || !Number.isInteger(limit) || limit < 0) {
+		res.status(400).json(new ApiResponse(false, "Limit must be a non-negative integer", null));
+		return;
+	}
+
+	await SystemSettingModel.findOneAndUpdate(
+		{ key: EDI_GLOBAL_LIMIT_KEY },
+		{ $set: { valueNumber: limit } },
+		{ upsert: true, new: true }
+	);
+
+	res.status(200).json(new ApiResponse(true, "Global EDI assignment limit updated", { limit }));
+});
+
 // ─── Admin: assign or unassign a course project guide ───────────────────────
 export const assignCpGuide = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
 	const { id } = req.params as { id: string };
@@ -702,15 +813,238 @@ export const assignCpGuide = asyncHandler(async (req: AuthenticatedRequest, res:
 
 // ─── Admin: view all groups ───────────────────────────────────────────────────
 export const getAllGroups = asyncHandler(async (_req: AuthenticatedRequest, res: Response) => {
-	const groups = await ProjectGroupModel.find({ isEdiRegistered: true }).populate(POPULATE).sort({ createdAt: -1 }).lean();
+	const groups = await ProjectGroupModel.find({}).populate(POPULATE).sort({ createdAt: -1 }).lean();
 
-	res.status(200).json(new ApiResponse(true, "EDI-registered groups fetched", groups.map((g) => formatGroup(g as unknown as Record<string, unknown>))));
+	res.status(200).json(new ApiResponse(true, "Groups fetched", groups.map((g) => formatGroup(g as unknown as Record<string, unknown>))));
+});
+
+// ─── Admin: student division summary (in groups vs not in groups) ───────────
+export const getStudentDivisionSummary = asyncHandler(async (_req: AuthenticatedRequest, res: Response) => {
+	const [students, groups] = await Promise.all([
+		UserModel.find({ role: "student" }).select("name email branch division rollNo").lean(),
+		ProjectGroupModel.find({}).select("name members").lean()
+	]);
+
+	const groupedStudentIds = new Set<string>();
+	for (const group of groups) {
+		for (const memberId of group.members ?? []) {
+			groupedStudentIds.add(String(memberId));
+		}
+	}
+
+	const divisionMap = new Map<string, {
+		key: string;
+		branch: string;
+		division: string;
+		totalStudents: number;
+		studentsInGroups: number;
+		studentsNotInGroups: number;
+	}>();
+
+	for (const student of students) {
+		const branch = student.branch?.trim() || "Unknown Branch";
+		const division = student.division?.trim() || "Unassigned Division";
+		const key = `${branch}::${division}`;
+
+		if (!divisionMap.has(key)) {
+			divisionMap.set(key, {
+				key,
+				branch,
+				division,
+				totalStudents: 0,
+				studentsInGroups: 0,
+				studentsNotInGroups: 0
+			});
+		}
+
+		const bucket = divisionMap.get(key)!;
+		bucket.totalStudents += 1;
+		if (groupedStudentIds.has(String(student._id))) {
+			bucket.studentsInGroups += 1;
+		} else {
+			bucket.studentsNotInGroups += 1;
+		}
+	}
+
+	const result = [...divisionMap.values()].sort((left, right) => `${left.branch}-${left.division}`.localeCompare(`${right.branch}-${right.division}`));
+	res.status(200).json(new ApiResponse(true, "Student division summary fetched", result));
+});
+
+// ─── Admin: student details for one branch+division ─────────────────────────
+export const getStudentDivisionDetails = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+	const branch = String(req.query.branch ?? "").trim();
+	const division = String(req.query.division ?? "").trim();
+
+	if (!branch || !division) {
+		res.status(400).json(new ApiResponse(false, "branch and division query params are required", null));
+		return;
+	}
+
+	const [students, groups] = await Promise.all([
+		UserModel.find({ role: "student", branch, division }).select("name email branch division rollNo").lean(),
+		ProjectGroupModel.find({}).select("name members").lean()
+	]);
+
+	const studentToGroupMap = new Map<string, { groupId: string; groupName: string }>();
+	for (const group of groups) {
+		for (const memberId of group.members ?? []) {
+			const key = String(memberId);
+			if (!studentToGroupMap.has(key)) {
+				studentToGroupMap.set(key, { groupId: String(group._id), groupName: group.name });
+			}
+		}
+	}
+
+	const studentsInGroups: StudentGroupStatus[] = [];
+	const studentsNotInGroups: StudentGroupStatus[] = [];
+
+	for (const student of students) {
+		const mappedGroup = studentToGroupMap.get(String(student._id));
+		const mapped: StudentGroupStatus = {
+			id: String(student._id),
+			name: student.name,
+			email: student.email,
+			branch: student.branch?.trim() || branch,
+			division: student.division?.trim() || division,
+			rollNo: student.rollNo?.trim() || null,
+			groupId: mappedGroup?.groupId ?? null,
+			groupName: mappedGroup?.groupName ?? null
+		};
+
+		if (mappedGroup) {
+			studentsInGroups.push(mapped);
+		} else {
+			studentsNotInGroups.push(mapped);
+		}
+	}
+
+	const sortStudents = (left: StudentGroupStatus, right: StudentGroupStatus) => {
+		if (left.rollNo && right.rollNo) return left.rollNo.localeCompare(right.rollNo);
+		if (left.rollNo && !right.rollNo) return -1;
+		if (!left.rollNo && right.rollNo) return 1;
+		return left.name.localeCompare(right.name);
+	};
+
+	studentsInGroups.sort(sortStudents);
+	studentsNotInGroups.sort(sortStudents);
+
+	res.status(200).json(
+		new ApiResponse(true, "Student division details fetched", {
+			branch,
+			division,
+			totalStudents: students.length,
+			studentsInGroupsCount: studentsInGroups.length,
+			studentsNotInGroupsCount: studentsNotInGroups.length,
+			studentsInGroups,
+			studentsNotInGroups
+		})
+	);
+});
+
+// ─── Admin: division-wise ungrouped student summary for EDI ─────────────────
+export const getEdiUngroupedStudentsByDivision = asyncHandler(async (_req: AuthenticatedRequest, res: Response) => {
+	const [students, ediGroups] = await Promise.all([
+		UserModel.find({ role: "student" }).select("name email branch division rollNo").lean(),
+		ProjectGroupModel.find({ isEdiRegistered: true }).select("members").lean()
+	]);
+
+	const groupedStudentIds = new Set<string>();
+	for (const group of ediGroups) {
+		for (const memberId of group.members ?? []) {
+			groupedStudentIds.add(String(memberId));
+		}
+	}
+
+	const divisionMap = new Map<string, {
+		key: string;
+		branch: string;
+		division: string;
+		totalStudents: number;
+		groupedStudents: number;
+		ungroupedStudents: number;
+		remainingStudents: StudentSummary[];
+	}>();
+
+	for (const student of students) {
+		const branch = student.branch?.trim() || "Unknown Branch";
+		const division = student.division?.trim() || "Unassigned Division";
+		const key = `${branch}::${division}`;
+
+		if (!divisionMap.has(key)) {
+			divisionMap.set(key, {
+				key,
+				branch,
+				division,
+				totalStudents: 0,
+				groupedStudents: 0,
+				ungroupedStudents: 0,
+				remainingStudents: []
+			});
+		}
+
+		const bucket = divisionMap.get(key)!;
+		bucket.totalStudents += 1;
+
+		const isGroupedForEdi = groupedStudentIds.has(String(student._id));
+		if (isGroupedForEdi) {
+			bucket.groupedStudents += 1;
+		} else {
+			bucket.ungroupedStudents += 1;
+			bucket.remainingStudents.push({
+				id: String(student._id),
+				name: student.name,
+				email: student.email,
+				branch,
+				division,
+				rollNo: student.rollNo?.trim() || null
+			});
+		}
+	}
+
+	const result = [...divisionMap.values()]
+		.map((bucket) => {
+			bucket.remainingStudents.sort((left, right) => {
+				if (left.rollNo && right.rollNo) return left.rollNo.localeCompare(right.rollNo);
+				if (left.rollNo && !right.rollNo) return -1;
+				if (!left.rollNo && right.rollNo) return 1;
+				return left.name.localeCompare(right.name);
+			});
+
+			const studentsNeededToCompleteNextGroup = bucket.ungroupedStudents === 0
+				? 0
+				: (4 - (bucket.ungroupedStudents % 4)) % 4;
+
+			return {
+				...bucket,
+				potentialFullGroups: Math.floor(bucket.ungroupedStudents / 4),
+				studentsNeededToCompleteNextGroup
+			};
+		})
+		.sort((left, right) => `${left.branch}-${left.division}`.localeCompare(`${right.branch}-${right.division}`));
+
+	res.status(200).json(new ApiResponse(true, "EDI ungrouped students by division fetched", result));
 });
 
 // ─── Admin: list all guide users ─────────────────────────────────────────────
 export const getAllGuides = asyncHandler(async (_req: AuthenticatedRequest, res: Response) => {
-	const guides = await UserModel.find({ role: "guide" }).select("name email teachingSubjects").populate("teachingSubjects", "name description").lean();
-	res.status(200).json(new ApiResponse(true, "Guides fetched", guides.map((g) => fu(g as unknown as PopUser))));
+	const guides = await UserModel.find({ role: "guide" })
+		.select("name email teachingSubjects")
+		.populate("teachingSubjects", "name description")
+		.lean();
+
+	const guideIds = guides.map((guide) => guide._id);
+	const assignmentStats = await ProjectGroupModel.aggregate<{ _id: Types.ObjectId; count: number }>([
+		{ $match: { isEdiRegistered: true, ediGuide: { $in: guideIds } } },
+		{ $group: { _id: "$ediGuide", count: { $sum: 1 } } }
+	]);
+
+	const countMap = new Map(assignmentStats.map((entry) => [String(entry._id), entry.count]));
+	const result = guides.map((guide) => ({
+		...fu(guide as unknown as PopUser),
+		ediAssignedCount: countMap.get(String(guide._id)) ?? 0
+	}));
+
+	res.status(200).json(new ApiResponse(true, "Guides fetched", result));
 });
 
 // ─── Student / Guide / Admin: list guides for a subject ─────────────────────

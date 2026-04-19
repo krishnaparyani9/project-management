@@ -16,6 +16,14 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import ProtectedRoute from "./ProtectedRoute";
 import { useAuth } from "../hooks/useAuth";
 import AdminDashboard from "../pages/AdminDashboard";
+import AdminGuideAssignmentPage from "../pages/AdminGuideAssignmentPage";
+import AdminGuidesPage from "../pages/AdminGuidesPage";
+import AdminGuideDetailsPage from "../pages/AdminGuideDetailsPage";
+import AdminCourseProjectGroupsPage from "../pages/AdminCourseProjectGroupsPage";
+import AdminEdiGroupsPage from "../pages/AdminEdiGroupsPage";
+import AdminStudentsDirectoryPage from "../pages/AdminStudentsDirectoryPage";
+import AdminStudentsDivisionPage from "../pages/AdminStudentsDivisionPage";
+import AdminSendNoticePage from "../pages/AdminSendNoticePage";
 
 const DashboardHome = () => {
   const { user } = useAuth();
@@ -43,6 +51,14 @@ const AppRoutes = () => {
           <Route path="/student/projects" element={<StudentProjectsPage />} />
           <Route path="/student/projects/:projectId" element={<StudentProjectDetailsPage />} />
           <Route path="/tasks" element={<TasksPage />} />
+          <Route path="/admin/edi-guide-assignment" element={<AdminGuideAssignmentPage />} />
+          <Route path="/admin/edi-groups" element={<AdminEdiGroupsPage />} />
+          <Route path="/admin/course-project-groups" element={<AdminCourseProjectGroupsPage />} />
+          <Route path="/admin/students-directory" element={<AdminStudentsDirectoryPage />} />
+          <Route path="/admin/students-directory/:branch/:division" element={<AdminStudentsDivisionPage />} />
+          <Route path="/admin/send-notice" element={<AdminSendNoticePage />} />
+          <Route path="/admin/guides" element={<AdminGuidesPage />} />
+          <Route path="/admin/guides/:guideId" element={<AdminGuideDetailsPage />} />
         </Route>
       </Route>
 

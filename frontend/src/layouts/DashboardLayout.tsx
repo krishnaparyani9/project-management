@@ -1,7 +1,7 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import Button from "../components/Button";
-import { BookOpen, FileText, Home, Settings2, Users, ListTodo, LogOut, FolderOpen } from "lucide-react";
+import { BookOpen, FileText, Home, Settings2, Users, ListTodo, LogOut, FolderOpen, Shuffle, ContactRound, Megaphone } from "lucide-react";
 
 const DashboardLayout = () => {
   const { user, signOut } = useAuth();
@@ -30,6 +30,14 @@ const DashboardLayout = () => {
           <nav className="space-y-1 text-sm">
             <NavLink className={navItemClass} to="/dashboard"><Home size={18} />Dashboard</NavLink>
             <NavLink className={navItemClass} to="/groups"><Users size={18} />Groups</NavLink>
+            {user?.role === "admin" && (
+              <>
+                <NavLink className={navItemClass} to="/admin/edi-guide-assignment"><Shuffle size={18} />EDI Guide Assignment</NavLink>
+                <NavLink className={navItemClass} to="/admin/guides"><Users size={18} />Guide Directory</NavLink>
+                <NavLink className={navItemClass} to="/admin/students-directory"><ContactRound size={18} />Students Directory</NavLink>
+                <NavLink className={navItemClass} to="/admin/send-notice"><Megaphone size={18} />Send Notice</NavLink>
+              </>
+            )}
             {user?.role === "student" && (
               <>
                 <NavLink className={navItemClass} to="/student/edi-major-project"><BookOpen size={18} />EDI Major Project</NavLink>

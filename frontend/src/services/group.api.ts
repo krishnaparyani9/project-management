@@ -1,7 +1,14 @@
 export const fetchAllGroupNames = () =>
 	api.get<AR<{ name: string; branch: string; division: string }[]>>("/groups/all-public");
 import api from "./api";
-import type { ProjectGroup, PendingInvite, GuideUser } from "../types/group.types";
+import type {
+	ProjectGroup,
+	PendingInvite,
+	GuideUser,
+	EdiDivisionStudentSummary,
+	StudentDivisionSummary,
+	StudentDivisionDetails
+} from "../types/group.types";
 
 interface AR<T> { success: boolean; message: string; data: T; }
 
@@ -38,6 +45,26 @@ export const removeMember = (groupId: string, memberId: string) =>
 
 export const assignGuide = (groupId: string, guideId: string | null) =>
 	api.post<AR<ProjectGroup>>(`/groups/${groupId}/assign-guide`, { guideId });
+
+export const assignGuideRandom = (groupId: string) =>
+	api.post<AR<ProjectGroup>>(`/groups/${groupId}/assign-guide-random`);
+
+export const fetchEdiGuideLimit = () =>
+	api.get<AR<{ limit: number }>>("/groups/edi-limit");
+
+export const fetchEdiUngroupedStudentsByDivision = () =>
+	api.get<AR<EdiDivisionStudentSummary[]>>("/groups/edi-ungrouped-students");
+
+export const fetchStudentDivisionSummary = () =>
+	api.get<AR<StudentDivisionSummary[]>>("/groups/student-division-summary");
+
+export const fetchStudentDivisionDetails = (branch: string, division: string) =>
+	api.get<AR<StudentDivisionDetails>>("/groups/student-division-details", {
+		params: { branch, division }
+	});
+
+export const updateEdiGuideLimit = (limit: number) =>
+	api.patch<AR<{ limit: number }>>("/groups/edi-limit", { limit });
 
 export const assignCpGuide = (groupId: string, guideId: string | null) =>
 	api.post<AR<ProjectGroup>>(`/groups/${groupId}/assign-cp-guide`, { guideId });

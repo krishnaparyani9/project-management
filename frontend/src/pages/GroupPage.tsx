@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import Modal from "../components/Modal";
 import Button from "../components/Button";
@@ -7,7 +8,7 @@ import Input from "../components/Input";
 import {
   fetchMyGroup, fetchMyInvites, createGroup, updateGroup, deleteGroup,
   leaveGroup, inviteStudent, respondToInvite, cancelInvite, removeMember,
-  fetchGuideGroups, fetchAllGroups, fetchAllGuides, assignGuide,
+  fetchGuideGroups, fetchAllGroups,
   fetchAllGroupNames
 } from "../services/group.api";
 import type { ProjectGroup, PendingInvite } from "../types/group.types";
@@ -428,8 +429,7 @@ function StudentGroupPage() {
   const [error, setError] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState("");
-  // Subject is fixed to 'EDI' for now
-  const newSubject = "EDI";
+  const newSubject = "General";
   const [createErr, setCreateErr] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
   const [allGroupNames, setAllGroupNames] = useState<{ name: string; branch: string; division: string; subject?: string }[]>([]);
@@ -546,10 +546,10 @@ function StudentGroupPage() {
                 ))}
               </select>
             </label>
-            {/* Subject is fixed to EDI */}
+            {/* Group context is generic and shared across separate project modules. */}
             <div className="mt-2">
-              <span className="block text-sm font-medium text-[var(--text-strong)]">Subject</span>
-              <span className="block text-base font-semibold text-[var(--primary)]">EDI</span>
+              <span className="block text-sm font-medium text-[var(--text-strong)]">Group Context</span>
+              <span className="block text-base font-semibold text-[var(--primary)]">General</span>
             </div>
             {createErr && <p className="text-sm text-[var(--danger)]">{createErr}</p>}
             <div className="flex justify-end gap-2">
@@ -706,37 +706,41 @@ function GuideGroupPage() {
 // ─── Admin page: all groups + assign guide ────────────────────────────────────
 
 function AdminGroupPage() {
+  const navigate = useNavigate();
   const [groups, setGroups] = useState<ProjectGroup[]>([]);
-  const [guides, setGuides] = useState<{ id: string; name: string; email: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const [assignTarget, setAssignTarget] = useState<ProjectGroup | null>(null);
-  const [selectedGuideId, setSelectedGuideId] = useState("");
-  const [assigning, setAssigning] = useState(false);
-  const [assignErr, setAssignErr] = useState("");
 
   useEffect(() => {
-    Promise.all([fetchAllGroups(), fetchAllGuides()])
-      .then(([gr, gd]) => { setGroups(gr.data.data); setGuides(gd.data.data); })
+    fetchAllGroups()
+      .then((gr) => {
+        setGroups(gr.data.data);
+      })
       .catch((err: unknown) => setError(errMsg(err)))
       .finally(() => setIsLoading(false));
   }, []);
 
-  const handleAssign = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!assignTarget) return;
-    setAssignErr("");
-    setAssigning(true);
-    try {
-      const res = await assignGuide(assignTarget.id, selectedGuideId || null);
-      setGroups((prev) => prev.map((g) => g.id === assignTarget.id ? res.data.data : g));
-      setAssignTarget(null);
-    } catch (err) {
-      setAssignErr(errMsg(err));
-    } finally {
-      setAssigning(false);
-    }
-  };
+  const ediGroups = groups.filter((group) => group.isEdiRegistered);
+  const courseProjectGroups = groups.filter((group) => group.courseProjectRegistrations.length > 0);
+  const ediAssignedCount = ediGroups.filter((group) => Boolean(group.ediGuide)).length;
+  const ediPendingAssignmentCount = ediGroups.length - ediAssignedCount;
+  const totalMembers = groups.reduce((sum, group) => sum + group.members.length, 0);
+  const averageGroupSize = groups.length === 0 ? 0 : totalMembers / groups.length;
+  const cpRegistrationCount = groups.reduce((sum, group) => sum + group.courseProjectRegistrations.length, 0);
+  const cpLabPendingCount = groups.reduce(
+    (sum, group) => sum + group.courseProjectRegistrations.filter((registration) => !registration.labFaculty).length,
+    0
+  );
+
+  const divisionCounts = Object.entries(
+    groups.reduce((acc, group) => {
+      const division = group.owner.division?.trim() || "Unassigned";
+      acc[division] = (acc[division] ?? 0) + 1;
+      return acc;
+    }, {} as Record<string, number>)
+  )
+    .sort((left, right) => right[1] - left[1])
+    .slice(0, 3);
 
   if (isLoading) return <p className="text-sm text-[var(--text-muted)]">Loading all groups...</p>;
   if (error) return <p className="text-sm text-[var(--danger)]">{error}</p>;
@@ -745,66 +749,95 @@ function AdminGroupPage() {
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-[var(--primary)]">Admin Panel</p>
-        <h2 className="mt-1 text-3xl font-bold tracking-tight text-[var(--text-strong)]">All Project Groups</h2>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">Review groups and assign guides.</p>
+        <h2 className="mt-1 text-3xl font-bold tracking-tight text-[var(--text-strong)]">Group Directory</h2>
+        <p className="mt-1 text-sm text-[var(--text-muted)]">Open dedicated EDI and Course Project group pages from the tiles below.</p>
       </div>
 
-      {groups.length === 0 ? (
-        <div className="lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-10 text-center shadow-card">
-          <p className="text-[var(--text-muted)]">No EDI-registered groups available yet.</p>
-        </div>
-      ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {groups.map((g) => (
-            <article key={g.id} className="reveal-up delay-2 hover-glow lit-card rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h3 className="font-semibold text-[var(--text-strong)]">{g.name}</h3>
-                  <p className="mt-0.5 text-xs text-[var(--text-muted)]">
-                    Owner: {g.owner.name} · {g.members.length}/4 members
-                  </p>
-                  <p className="mt-1 text-xs text-[var(--text-muted)]">
-                    {g.ediGuide ? "Guide Assigned" : "Guide Not Assigned"}
-                  </p>
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <article className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 shadow-card">
+          <p className="text-xs uppercase tracking-[0.16em] text-[var(--text-muted)]">Total Groups</p>
+          <p className="mt-2 text-2xl font-bold text-[var(--text-strong)]">{groups.length}</p>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">Across EDI and Course Project</p>
+        </article>
+
+        <article className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 shadow-card">
+          <p className="text-xs uppercase tracking-[0.16em] text-[var(--text-muted)]">EDI Pending Guide</p>
+          <p className="mt-2 text-2xl font-bold text-[var(--warn)]">{ediPendingAssignmentCount}</p>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">{ediAssignedCount}/{ediGroups.length} assigned</p>
+        </article>
+
+        <article className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 shadow-card">
+          <p className="text-xs uppercase tracking-[0.16em] text-[var(--text-muted)]">CP Lab Faculty Pending</p>
+          <p className="mt-2 text-2xl font-bold text-[var(--warn)]">{cpLabPendingCount}</p>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">Across {cpRegistrationCount} registrations</p>
+        </article>
+
+        <article className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-4 shadow-card">
+          <p className="text-xs uppercase tracking-[0.16em] text-[var(--text-muted)]">Avg Team Size</p>
+          <p className="mt-2 text-2xl font-bold text-[var(--text-strong)]">{averageGroupSize.toFixed(1)}/4</p>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">Based on active groups</p>
+        </article>
+      </section>
+
+      <section className="grid gap-4 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={() => navigate("/admin/edi-groups")}
+          className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 text-left shadow-card transition hover:border-[var(--primary)]/40"
+        >
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--text-muted)]">Open</p>
+          <p className="mt-1 text-lg font-semibold text-[var(--text-strong)]">EDI Groups</p>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">{ediGroups.length} groups available</p>
+          <p className="mt-3 text-xs font-medium text-[var(--primary)]">View division-wise EDI groups</p>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => navigate("/admin/course-project-groups")}
+          className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 text-left shadow-card transition hover:border-[var(--primary)]/40"
+        >
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-[var(--text-muted)]">Open</p>
+          <p className="mt-1 text-lg font-semibold text-[var(--text-strong)]">CP Groups</p>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">
+            {courseProjectGroups.length} groups available
+          </p>
+          <p className="mt-3 text-xs font-medium text-[var(--primary)]">View subject-wise CP groups</p>
+        </button>
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        <article className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
+          <h3 className="text-base font-semibold text-[var(--text-strong)]">Needs Attention</h3>
+          <div className="mt-3 space-y-2 text-sm text-[var(--text-muted)]">
+            <p>EDI groups without guide: <span className="font-semibold text-[var(--text-strong)]">{ediPendingAssignmentCount}</span></p>
+            <p>CP registrations without lab faculty: <span className="font-semibold text-[var(--text-strong)]">{cpLabPendingCount}</span></p>
+            <p>Groups below 4 members: <span className="font-semibold text-[var(--text-strong)]">{groups.filter((group) => group.members.length < 4).length}</span></p>
+          </div>
+        </article>
+
+        <article className="rounded-2xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">
+          <h3 className="text-base font-semibold text-[var(--text-strong)]">Top Active Divisions</h3>
+          {divisionCounts.length === 0 ? (
+            <p className="mt-3 text-sm text-[var(--text-muted)]">No division data available yet.</p>
+          ) : (
+            <div className="mt-3 space-y-2">
+              {divisionCounts.map(([division, count]) => (
+                <div key={division} className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--bg-1)]/60 px-3 py-2 text-sm">
+                  <span className="text-[var(--text-body)]">Division {division}</span>
+                  <span className="font-semibold text-[var(--text-strong)]">{count} groups</span>
                 </div>
-                <button
-                  onClick={() => { setAssignTarget(g); setSelectedGuideId(g.ediGuide?.id ?? ""); setAssignErr(""); }}
-                  className="shrink-0 rounded-lg border border-[var(--primary)]/40 bg-[var(--primary)]/10 px-3 py-1.5 text-xs font-medium text-[var(--primary)] hover:bg-[var(--primary)]/20 transition"
-                >
-                  {g.ediGuide ? "Change Guide" : "Assign Guide"}
-                </button>
-              </div>
-            </article>
-          ))}
+              ))}
+            </div>
+          )}
+        </article>
+      </section>
+
+      {groups.length === 0 && (
+        <div className="lit-card rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-10 text-center shadow-card">
+          <p className="text-[var(--text-muted)]">No groups available yet.</p>
         </div>
       )}
 
-      <Modal
-        open={!!assignTarget}
-        title={`Assign Guide — ${assignTarget?.name ?? ""}`}
-        onClose={() => setAssignTarget(null)}
-      >
-        <form className="space-y-4" onSubmit={(e) => void handleAssign(e)}>
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-[var(--text-strong)]">Select Guide</span>
-            <select
-              className="w-full rounded-lg border border-[var(--border)] bg-[var(--bg-0)] px-3 py-2 text-sm text-[var(--text-body)] shadow-soft outline-none ring-[var(--focus)] transition focus:border-[var(--focus)] focus:ring"
-              value={selectedGuideId}
-              onChange={(e) => setSelectedGuideId(e.target.value)}
-            >
-              <option value="">— Remove / Unassign —</option>
-              {guides.map((g) => (
-                <option key={g.id} value={g.id}>{g.name} ({g.email})</option>
-              ))}
-            </select>
-          </label>
-          {assignErr && <p className="text-sm text-[var(--danger)]">{assignErr}</p>}
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" className="border-[var(--border)] bg-[var(--bg-1)] text-[var(--text-body)] hover:bg-[var(--bg-2)]" type="button" onClick={() => setAssignTarget(null)}>Cancel</Button>
-            <Button type="submit" disabled={assigning}>{assigning ? "Saving..." : "Confirm"}</Button>
-          </div>
-        </form>
-      </Modal>
     </div>
   );
 }

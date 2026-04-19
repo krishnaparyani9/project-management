@@ -37,7 +37,10 @@ const CourseProjectPage = () => {
 			setIsLoading(true);
 			try {
 				const [subjectsResponse, groupResponse] = await Promise.all([fetchAllSubjects(), fetchMyGroup()]);
-				setSubjects(subjectsResponse.data.data);
+				const nonEdiSubjects = subjectsResponse.data.data.filter(
+					(subject) => !/\bedi\b/i.test(subject.name)
+				);
+				setSubjects(nonEdiSubjects);
 				setGroup(groupResponse.data.data[0] ?? null);
 			} catch (err) {
 				console.error("Failed to fetch subjects", err);

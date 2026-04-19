@@ -7,8 +7,8 @@ import {
 	registerCourseProjectSubject, assignCourseProjectLabFaculty,
 	registerEdiGroup,
 	getGuideGroups,
-	assignGuide, assignCpGuide, getAllGroups, getAllGuides, getGuidesBySubject,
-	getAllGroupNames
+	assignGuide, assignGuideRandomly, getEdiGuideLimit, updateEdiGuideLimit, assignCpGuide, getAllGroups, getAllGuides, getGuidesBySubject,
+	getAllGroupNames, getEdiUngroupedStudentsByDivision, getStudentDivisionSummary, getStudentDivisionDetails
 } from "../controllers/group.controller";
 import { authenticate } from "../middleware/auth.middleware";
 import { authorizeRoles } from "../middleware/role.middleware";
@@ -20,6 +20,11 @@ router.get("/my",          authenticate, authorizeRoles("student"), getMyGroup);
 router.get("/invites",     authenticate, authorizeRoles("student"), getMyInvites);
 router.get("/guide",       authenticate, authorizeRoles("guide"),   getGuideGroups);
 router.get("/all",         authenticate, authorizeRoles("admin"),   getAllGroups);
+router.get("/edi-ungrouped-students", authenticate, authorizeRoles("admin"), getEdiUngroupedStudentsByDivision);
+router.get("/student-division-summary", authenticate, authorizeRoles("admin"), getStudentDivisionSummary);
+router.get("/student-division-details", authenticate, authorizeRoles("admin"), getStudentDivisionDetails);
+router.get("/edi-limit",   authenticate, authorizeRoles("admin"),   getEdiGuideLimit);
+router.patch("/edi-limit", authenticate, authorizeRoles("admin"),   updateEdiGuideLimit);
 router.get("/all-public",  authenticate, authorizeRoles("student", "guide", "admin"), getAllGroupNames);
 router.get("/guides-list", authenticate, authorizeRoles("student", "guide", "admin"), getAllGuides);
 router.get("/guides-by-subject/:subjectId", authenticate, authorizeRoles("student", "guide", "admin"), getGuidesBySubject);
@@ -43,6 +48,7 @@ router.delete("/:id/members/:memberId",     authenticate, authorizeRoles("studen
 
 // Admin: guide assignment
 router.post("/:id/assign-guide", authenticate, authorizeRoles("admin"), assignGuide);
+router.post("/:id/assign-guide-random", authenticate, authorizeRoles("admin"), assignGuideRandomly);
 router.post("/:id/assign-cp-guide", authenticate, authorizeRoles("admin"), assignCpGuide);
 
 export default router;

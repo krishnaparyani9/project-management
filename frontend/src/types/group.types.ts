@@ -12,6 +12,8 @@ export interface GroupOwner {
   id: string;
   name: string;
   email: string;
+  branch?: string;
+  division?: string;
 }
 
 export interface GuideUser {
@@ -19,6 +21,7 @@ export interface GuideUser {
   name: string;
   email: string;
   teachingSubjectIds?: string[];
+  ediAssignedCount?: number;
 }
 
 export interface GroupProject {
@@ -67,4 +70,55 @@ export interface PendingInvite {
   subject: string;
   owner: GroupOwner;
   memberCount: number;
+}
+
+export interface EdiUngroupedStudent {
+  id: string;
+  name: string;
+  email: string;
+  branch: string;
+  division: string;
+  rollNo: string | null;
+}
+
+export interface EdiDivisionStudentSummary {
+  key: string;
+  branch: string;
+  division: string;
+  totalStudents: number;
+  groupedStudents: number;
+  ungroupedStudents: number;
+  potentialFullGroups: number;
+  studentsNeededToCompleteNextGroup: number;
+  remainingStudents: EdiUngroupedStudent[];
+}
+
+export interface StudentDivisionSummary {
+  key: string;
+  branch: string;
+  division: string;
+  totalStudents: number;
+  studentsInGroups: number;
+  studentsNotInGroups: number;
+}
+
+export interface StudentDivisionStudent {
+  id: string;
+  name: string;
+  email: string;
+  branch: string;
+  division: string;
+  rollNo: string | null;
+  groupId: string | null;
+  groupName: string | null;
+}
+
+export interface StudentDivisionDetails {
+  branch: string;
+  division: string;
+  totalStudents: number;
+  studentsInGroupsCount: number;
+  studentsNotInGroupsCount: number;
+  studentsInGroups: StudentDivisionStudent[];
+  studentsNotInGroups: StudentDivisionStudent[];
 }
