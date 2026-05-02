@@ -8,6 +8,7 @@ import progressRoutes from "./routes/progress.routes";
 import groupRoutes from "./routes/group.routes";
 import subjectRoutes from "./routes/subject.routes";
 import noticeRoutes from "./routes/notice.routes";
+import documentRoutes from "./routes/document.routes";
 import { errorHandler } from "./middleware/error.middleware";
 
 const app = express();
@@ -31,6 +32,7 @@ app.use("/api/progress", progressRoutes);
 app.use("/api/groups", groupRoutes);
 app.use("/api/subjects", subjectRoutes);
 app.use("/api/notices", noticeRoutes);
+app.use("/api/documents", documentRoutes);
 
 app.use(errorHandler);
 

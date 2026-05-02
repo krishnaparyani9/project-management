@@ -442,7 +442,8 @@ function StudentGroupPage() {
     .filter(g => g.branch === branch && g.division === division && g.name.startsWith(groupPrefix))
     .map(g => parseInt(g.name.replace(groupPrefix, ""), 10))
     .filter(n => !isNaN(n));
-  const availableNumbers = Array.from({ length: 21 }, (_, i) => i).filter(n => !takenNumbers.includes(n));
+  // Start group numbering from 1 instead of 0
+  const availableNumbers = Array.from({ length: 20 }, (_, i) => i + 1).filter(n => !takenNumbers.includes(n));
 
   useEffect(() => {
     const load = async () => {

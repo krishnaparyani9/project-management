@@ -24,6 +24,8 @@ import AdminEdiGroupsPage from "../pages/AdminEdiGroupsPage";
 import AdminStudentsDirectoryPage from "../pages/AdminStudentsDirectoryPage";
 import AdminStudentsDivisionPage from "../pages/AdminStudentsDivisionPage";
 import AdminSendNoticePage from "../pages/AdminSendNoticePage";
+import DocumentUploadPage from "../pages/DocumentUploadPage";
+import DocumentsPage from "../pages/DocumentsPage";
 
 const DashboardHome = () => {
   const { user } = useAuth();
@@ -51,6 +53,8 @@ const AppRoutes = () => {
           <Route path="/student/projects" element={<StudentProjectsPage />} />
           <Route path="/student/projects/:projectId" element={<StudentProjectDetailsPage />} />
           <Route path="/tasks" element={<TasksPage />} />
+          <Route path="/documents" element={<DocumentsPage />} />
+          <Route path="/documents/group/:groupId" element={<DocumentUploadPage />} />
           <Route path="/admin/edi-guide-assignment" element={<AdminGuideAssignmentPage />} />
           <Route path="/admin/edi-groups" element={<AdminEdiGroupsPage />} />
           <Route path="/admin/course-project-groups" element={<AdminCourseProjectGroupsPage />} />

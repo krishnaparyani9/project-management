@@ -182,6 +182,16 @@ const StudentProjectDetailsPage = () => {
             <p className="mt-1 text-sm font-semibold text-[var(--text-strong)]">{project.guideName}</p>
           </div>
         </div>
+        {myGroup?.id ? (
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <Link
+              to={`/documents/group/${myGroup.id}`}
+              className="inline-flex items-center justify-center rounded-full border border-[var(--border)] bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--bg-0)] transition hover:bg-[var(--primary-dark)]"
+            >
+              Upload Document
+            </Link>
+          </div>
+        ) : null}
       </section>
 
       <section className="rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card">

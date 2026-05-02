@@ -1072,3 +1072,29 @@ export const getGuidesBySubject = asyncHandler(async (req: AuthenticatedRequest,
 	);
 });
 
+// ─── Get Group by ID ─────────────────────────────────────────────────────────
+export const getGroupById = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+	const { groupId } = req.params as { groupId: string };
+
+	if (!Types.ObjectId.isValid(groupId)) {
+		res.status(400).json(new ApiResponse(false, "Invalid group ID", null));
+		return;
+	}
+
+	const group = await ProjectGroupModel.findById(groupId)
+		.populate("owner", "name email")
+		.populate("ediGuide", "name email")
+		.populate("cpGuide", "name email")
+		.populate("members", "name email")
+		.lean();
+
+	if (!group) {
+		res.status(404).json(new ApiResponse(false, "Group not found", null));
+		return;
+	}
+
+	res.status(200).json(
+		new ApiResponse(true, "Group fetched", group)
+	);
+});
+

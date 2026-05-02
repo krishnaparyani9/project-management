@@ -117,11 +117,7 @@ const StudentProjectsPage = () => {
       ) : (
         <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {projects.map((project: GroupProject) => (
-            <Link
-              key={project.id}
-              to={`/student/projects/${project.id}`}
-              className="reveal-up rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card transition hover:border-[var(--primary)]/50 hover:-translate-y-0.5"
-            >
+            <div key={project.id} className="reveal-up rounded-xl border border-[var(--border)] bg-[var(--card-bg)] p-5 shadow-card transition hover:border-[var(--primary)]/50 hover:-translate-y-0.5">
               <div className="mb-3 flex items-center gap-2 text-[var(--primary)]">
                 <Layers3 size={16} />
                 <p className="text-xs uppercase tracking-[0.2em] font-semibold">Project Tile</p>
@@ -143,9 +139,25 @@ const StudentProjectsPage = () => {
                   <p className="mt-1 text-sm font-medium text-[var(--text-body)]">{project.guideName}</p>
                 </div>
 
-                <p className="text-xs text-[var(--primary)]">Open complete project details</p>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <Link
+                    to={`/student/projects/${project.id}`}
+                    className="text-sm font-semibold text-[var(--primary)] hover:underline"
+                  >
+                    Open complete project details
+                  </Link>
+
+                  {group?.id ? (
+                    <Link
+                      to={`/documents/group/${group.id}`}
+                      className="inline-flex items-center justify-center rounded-full border border-[var(--border)] bg-[var(--primary)] px-3 py-2 text-sm font-semibold text-[var(--bg-0)] transition hover:bg-[var(--primary-dark)]"
+                    >
+                      Add Document
+                    </Link>
+                  ) : null}
+                </div>
               </div>
-            </Link>
+            </div>
           ))}
         </section>
       )}

@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+import * as dotenv from "dotenv";
 import { z } from "zod";
 
 dotenv.config();
@@ -17,7 +17,10 @@ const envSchema = z.object({
 	SMTP_SECURE: z.enum(["true", "false"]).default("false"),
 	SMTP_USER: z.string().default(""),
 	SMTP_PASS: z.string().default(""),
-	MAIL_FROM: z.string().default("no-reply@vit.edu")
+	MAIL_FROM: z.string().default("no-reply@vit.edu"),
+	CLOUDINARY_CLOUD_NAME: z.string().min(1, "CLOUDINARY_CLOUD_NAME is required"),
+	CLOUDINARY_API_KEY: z.string().min(1, "CLOUDINARY_API_KEY is required"),
+	CLOUDINARY_API_SECRET: z.string().min(1, "CLOUDINARY_API_SECRET is required")
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -41,5 +44,8 @@ export const env = {
 	smtpSecure: parsed.data.SMTP_SECURE === "true",
 	smtpUser: parsed.data.SMTP_USER,
 	smtpPass: parsed.data.SMTP_PASS,
-	mailFrom: parsed.data.MAIL_FROM
+	mailFrom: parsed.data.MAIL_FROM,
+	cloudinaryCloudName: parsed.data.CLOUDINARY_CLOUD_NAME,
+	cloudinaryApiKey: parsed.data.CLOUDINARY_API_KEY,
+	cloudinaryApiSecret: parsed.data.CLOUDINARY_API_SECRET
 };

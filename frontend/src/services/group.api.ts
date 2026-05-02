@@ -16,6 +16,7 @@ export const fetchMyGroup       = () => api.get<AR<ProjectGroup[]>>("/groups/my"
 export const fetchMyInvites     = () => api.get<AR<PendingInvite[]>>("/groups/invites");
 export const fetchGuideGroups   = () => api.get<AR<ProjectGroup[]>>("/groups/guide");
 export const fetchAllGroups     = () => api.get<AR<ProjectGroup[]>>("/groups/all");
+export const fetchGroupById     = (groupId: string) => api.get<AR<ProjectGroup>>(`/groups/${groupId}`);
 export const fetchAllGuides     = () => api.get<AR<GuideUser[]>>("/groups/guides-list");
 export const fetchGuidesBySubject = (subjectId: string) => api.get<AR<GuideUser[]>>(`/groups/guides-by-subject/${subjectId}`);
 

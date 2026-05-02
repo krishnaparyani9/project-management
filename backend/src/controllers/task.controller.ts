@@ -203,7 +203,7 @@ export const updateMyTaskStatus = asyncHandler(async (req: AuthenticatedRequest,
 		task.completionCommitUrls = commitUrls;
 		task.completedAt = new Date();
 	} else {
-		task.completedAt = null;
+		task.completedAt = undefined;
 		if (status === "todo") {
 			task.completionNote = "";
 			task.completionCommitUrls = [];

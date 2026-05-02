@@ -8,7 +8,7 @@ import {
 	registerEdiGroup,
 	getGuideGroups,
 	assignGuide, assignGuideRandomly, getEdiGuideLimit, updateEdiGuideLimit, assignCpGuide, getAllGroups, getAllGuides, getGuidesBySubject,
-	getAllGroupNames, getEdiUngroupedStudentsByDivision, getStudentDivisionSummary, getStudentDivisionDetails
+	getAllGroupNames, getEdiUngroupedStudentsByDivision, getStudentDivisionSummary, getStudentDivisionDetails, getGroupById
 } from "../controllers/group.controller";
 import { authenticate } from "../middleware/auth.middleware";
 import { authorizeRoles } from "../middleware/role.middleware";
@@ -28,6 +28,9 @@ router.patch("/edi-limit", authenticate, authorizeRoles("admin"),   updateEdiGui
 router.get("/all-public",  authenticate, authorizeRoles("student", "guide", "admin"), getAllGroupNames);
 router.get("/guides-list", authenticate, authorizeRoles("student", "guide", "admin"), getAllGuides);
 router.get("/guides-by-subject/:subjectId", authenticate, authorizeRoles("student", "guide", "admin"), getGuidesBySubject);
+
+// Get specific group by ID
+router.get("/:groupId", authenticate, getGroupById);
 
 // Student: create group
 router.post("/", authenticate, authorizeRoles("student"), createGroup);
